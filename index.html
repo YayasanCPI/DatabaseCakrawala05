@@ -14,41 +14,31 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Leaflet CSS & JS (Peta) -->
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
-        
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #eab308;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #eab308; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Marker Peta Style */
         .custom-div-icon { background: transparent; border: none; }
-        .marker-pin {
-            width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308;
-            position: absolute; transform: rotate(-45deg); left: 50%; top: 50%;
-            margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white;
+        .marker-pin { width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308; position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white; transition: all 0.3s; }
+        .marker-pin::after { content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px; background: #fff; position: absolute; border-radius: 50%; }
+        .marker-pin.blue { background: #2563eb; }
+        .marker-pin.red { background: #dc2626; }
+        .marker-pin.purple { background: #9333ea; }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .marker-pin::after {
-            content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px;
-            background: #fff; position: absolute; border-radius: 50%;
-        }
-        .marker-pin.blue { background: #2563eb; } /* Warna marker beda untuk filter */
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
@@ -57,14 +47,12 @@
     <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <!-- LOGO -->
                 <img src="https://i.ibb.co.com/NdhNm6cC/Untitled-design-2.png" alt="Logo Cakrawala" class="h-14 w-auto object-contain">
                 <div class="flex flex-col">
                     <h1 class="font-bold text-xl tracking-tight leading-none">Database</h1>
                     <span class="text-yellow-500 font-bold text-lg tracking-wide leading-none">Cakrawala 2005</span>
                 </div>
             </div>
-            
             <div class="flex items-center space-x-3">
                 <div class="hidden sm:flex text-xs text-right mr-2 items-center">
                     <span id="status-indicator" class="flex items-center justify-end font-bold mr-3 text-slate-500">
@@ -82,7 +70,7 @@
     <!-- MAIN CONTENT -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         
-        <!-- HERO & SEARCH -->
+        <!-- HERO -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Ecosystem Dashboard</h2>
             <p class="text-slate-500 mb-6">Peta kekuatan, bisnis, dan profesional angkatan 2005.</p>
@@ -94,382 +82,185 @@
                     </div>
                     <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-4 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 shadow-sm transition-all" placeholder="Cari nama, keahlian, atau bisnis..." />
                 </div>
-                
-                <!-- Toggle View Buttons -->
                 <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
-                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow">
-                        <i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar
-                    </button>
-                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50">
-                        <i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta
-                    </button>
+                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow"><i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar</button>
+                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50"><i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta</button>
                 </div>
             </div>
             
             <!-- SMART FILTERS -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
                 <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-800 transition-colors cat-btn" data-cat="all">Semua</button>
-                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal (Produk)</button>
                 <button onclick="setCategoryFilter('hiring')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-red-500 hover:text-red-600 transition-colors cat-btn" data-cat="hiring">Sedang Hiring</button>
-                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek (Gig)</button>
+                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek</button>
+                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal</button>
                 <button onclick="setCategoryFilter('mentor')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-green-500 hover:text-green-600 transition-colors cat-btn" data-cat="mentor">Mentor Ahli</button>
             </div>
         </div>
 
         <!-- DASHBOARD STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container">
-            <!-- Stats di-inject via JS -->
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4 animate-pulse">
-                <div class="w-12 h-12 bg-slate-200 rounded-lg"></div>
-                <div class="flex-1 space-y-2"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-6 bg-slate-200 rounded w-1/2"></div></div>
-            </div>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container"></div>
 
-        <!-- CONTENT AREA: LIST VIEW -->
+        <!-- LIST VIEW -->
         <div id="list-view-container" class="block">
-            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Cards di-inject via JS -->
-            </div>
+            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             <div id="loading-state" class="text-center py-20">
-                <div class="loader mx-auto mb-4"></div>
-                <p class="text-slate-500">Memuat data dari Google Sheet...</p>
+                <div class="loader mx-auto mb-4"></div><p class="text-slate-500">Memuat ekosistem...</p>
             </div>
             <div id="empty-state" class="hidden text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
-                <i data-lucide="users" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                <i data-lucide="search-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
                 <h3 class="text-lg font-medium text-slate-900">Data Tidak Ditemukan</h3>
             </div>
         </div>
 
-        <!-- CONTENT AREA: MAP VIEW -->
+        <!-- MAP VIEW -->
         <div id="map-view-container" class="hidden">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden relative flex flex-col h-[600px]">
-                
-                <!-- Map Header & Controls -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                    <div>
-                        <p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p>
-                        <p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p>
-                    </div>
-
-                    <!-- Filter Dropdown Lokasi -->
+                    <div><p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p><p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p></div>
                     <div class="relative z-[1000]"> 
-                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                            <i data-lucide="filter" class="h-4 w-4 text-slate-400"></i>
-                        </div>
-                        <select id="map-filter" class="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm appearance-none cursor-pointer hover:bg-slate-50 transition-colors min-w-[200px]">
-                            <option value="all">Semua Lokasi</option>
-                            <option disabled>──────────</option>
+                        <select id="map-filter" class="pl-3 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm cursor-pointer min-w-[200px]">
+                            <option value="all">Semua Lokasi</option><option disabled>──────────</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                            <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 rotate-90"></i>
-                        </div>
                     </div>
                 </div>
-                
-                <!-- Map Container -->
                 <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
-                    
-                    <!-- LEGEND (KETERANGAN PETA) -->
                     <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-slate-200 z-[500] text-xs space-y-2">
                         <div class="font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1">Keterangan:</div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span>
-                            <span>Alumni Punya Bisnis</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span>
-                            <span>Alumni Biasa</span>
-                        </div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#dc2626] border border-white shadow mr-2"></span><span>Hiring</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#9333ea] border border-white shadow mr-2"></span><span>Bursa Proyek</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span><span>Bisnis</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span><span>Alumni Biasa</span></div>
                     </div>
-                </div>
-                
-                <div class="mt-2 text-[10px] text-slate-400 text-center italic bg-slate-50 py-1 rounded">
-                    *Peta interaktif powered by OpenStreetMap & LeafletJS.
                 </div>
             </div>
         </div>
-
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-slate-900 text-slate-400 py-8 mt-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="mb-2">&copy; 2025 Paguyuban Alumni Tambang UPNVY Angkatan 2005.</p>
-        </div>
-    </footer>
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-12 border-t border-slate-800"><div class="max-w-7xl mx-auto px-4 text-center"><p class="mb-2">&copy; 2025 Paguyuban Alumni Tambang UPNVY Angkatan 2005.</p></div></footer>
 
-    <!-- MODAL DETAIL -->
+    <!-- MODAL -->
     <div id="detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="modal-content">
-            <!-- Modal Header -->
             <div class="bg-slate-800 p-6 flex justify-between items-start shrink-0">
                 <div class="flex items-center space-x-4">
-                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">
-                        NN
-                    </div>
-                    <div>
-                        <h2 id="modal-name" class="text-xl font-bold text-white">Nama Alumni</h2>
-                        <p id="modal-job" class="text-yellow-400 text-sm font-medium">Pekerjaan</p>
-                    </div>
+                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">NN</div>
+                    <div><h2 id="modal-name" class="text-xl font-bold text-white">Nama</h2><p id="modal-job" class="text-yellow-400 text-sm font-medium">Pekerjaan</p></div>
                 </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-
-            <!-- Modal Body -->
             <div class="p-6 space-y-6 overflow-y-auto">
-                
-                <!-- 1. Informasi Profesional Dasar -->
                 <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                        <p class="text-xs text-slate-500">Perusahaan / Instansi</p>
-                        <p id="modal-company" class="font-medium text-slate-800">-</p>
-                    </div>
-                    
-                    <!-- NEW: Skills Section -->
-                    <div id="modal-skills-section" class="hidden">
-                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                            <p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p>
-                            <p id="modal-skills" class="text-sm text-slate-800">-</p>
-                        </div>
-                    </div>
-
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><p class="text-xs text-slate-500">Perusahaan</p><p id="modal-company" class="font-medium text-slate-800">-</p></div>
+                    <div id="modal-skills-section" class="hidden"><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p><p id="modal-skills" class="text-sm text-slate-800">-</p></div></div>
                     <div class="flex gap-4">
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
-                            <p class="text-xs text-slate-500">Bidang</p>
-                            <p id="modal-field" class="font-medium text-slate-800">-</p>
-                        </div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
-                            <p class="text-xs text-slate-500">NIM</p>
-                            <p id="modal-nim" class="font-medium text-slate-800">-</p>
-                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">Bidang</p><p id="modal-field" class="font-medium text-slate-800">-</p></div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">NIM</p><p id="modal-nim" class="font-medium text-slate-800">-</p></div>
                     </div>
                 </div>
-
-                <!-- 2. EKOSISTEM EKONOMI SIRKULAR 2005 (Kolom Baru) -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-2 flex items-center">
-                        <i data-lucide="recycle" class="w-3 h-3 mr-2"></i> Ekosistem Ekonomi Sirkular 2005
-                    </h3>
-                    
-                    <!-- Tags (Mentor/Partner/dll) -->
-                    <div class="flex flex-wrap gap-2" id="modal-tags">
-                        <!-- Tags injected via JS -->
-                    </div>
-
-                    <!-- Detail Bisnis (Hanya muncul jika punya usaha) -->
-                    <div id="modal-business-section" class="hidden mt-3 pt-2 border-t border-yellow-200">
-                        <p class="font-bold text-slate-900 text-sm" id="modal-biz-name">-</p>
-                        <p class="text-xs text-slate-700 mt-1 italic" id="modal-biz-desc">-</p>
-                    </div>
+                
+                <!-- Special Info Boxes (RESTORED & FIXED) -->
+                <div id="modal-hiring-box" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                    <h3 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="briefcase" class="w-3 h-3 mr-2"></i> Info Lowongan</h3>
+                    <p class="text-sm text-slate-800 font-medium" id="modal-hiring-detail">-</p>
+                    <p class="text-[10px] text-slate-500 mt-1 italic">Klik tombol Hubungi untuk melamar.</p>
                 </div>
 
-                <!-- 3. Kontak & Lokasi -->
+                <div id="modal-gig-box" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="zap" class="w-3 h-3 mr-2"></i> Bursa Proyek</h3>
+                    <p class="text-sm text-slate-800 font-medium" id="modal-gig-detail">-</p>
+                    <p class="text-[10px] text-slate-500 mt-1 italic">Menawarkan keahlian/jasa di atas.</p>
+                </div>
+
+                <div id="modal-biz-box" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="store" class="w-3 h-3 mr-2"></i> Pasar Internal</h3>
+                    <p class="font-bold text-slate-900 text-sm" id="modal-biz-name">-</p>
+                    <p class="text-sm text-slate-700 mt-1" id="modal-biz-desc">-</p>
+                </div>
+
+                <!-- Contact -->
                 <div class="space-y-3 pt-2 border-t border-slate-100">
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Domisili</p>
-                            <p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p>
-                            <p id="modal-city" class="text-xs text-slate-500">-</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3">
-                            <i data-lucide="phone" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Nomor HP</p>
-                            <p id="modal-phone" class="text-sm font-medium text-slate-800">-</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-3">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Email</p>
-                            <p id="modal-email" class="text-sm font-medium text-slate-800">-</p>
-                        </div>
-                    </div>
-                    
-                    <!-- LinkedIn Link -->
-                    <div id="modal-linkedin-row" class="flex items-center p-2 hover:bg-slate-50 rounded-lg hidden transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center mr-3">
-                            <i data-lucide="linkedin" class="w-4 h-4"></i>
-                        </div>
-                        <a id="modal-linkedin-link" href="#" target="_blank" class="text-sm font-medium text-blue-700 hover:underline">
-                            Lihat Profil LinkedIn
-                        </a>
-                    </div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">Domisili</p><p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p><p id="modal-city" class="text-xs text-slate-500">-</p></div></div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg"><div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3"><i data-lucide="phone" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">HP</p><p id="modal-phone" class="text-sm font-medium text-slate-800">-</p></div></div>
+                    <div id="modal-linkedin-row" class="flex items-center p-2 hover:bg-slate-50 rounded-lg hidden"><div class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center mr-3"><i data-lucide="linkedin" class="w-4 h-4"></i></div><a id="modal-linkedin-link" href="#" target="_blank" class="text-sm font-medium text-blue-700 hover:underline">Lihat Profil LinkedIn</a></div>
                 </div>
             </div>
-
-            <!-- Modal Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
-                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">
-                    Tutup
-                </button>
-                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">
-                    Hubungi via WA
-                </a>
+                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">Tutup</button>
+                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">Hubungi via WA</a>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- CONFIG & STATE ---
         const API_URL = "https://script.google.com/macros/s/AKfycbzcUYrwhO2-LY950URvDmsL9vGpL42052tAqZKAKyGWlWba8c7zDYzKo7KIkcLP8bQX/exec";
+        let alumniData=[], filteredData=[], viewMode='list', mapFilterArea='all', activeCategory='all', mapInstance=null, markersLayer=null;
         
-        let alumniData = [];
-        let filteredData = [];
-        let viewMode = 'list';
-        let mapFilterArea = 'all';
-        let activeCategory = 'all';
-        let mapInstance = null; 
-        let markersLayer = null;
-
-        // --- DATABASE KOORDINAT LENGKAP (RESTORED & EXTENDED) ---
         const COORDINATES = {
-            // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
-            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
-            "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
-            "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 },
-            "tabalong": { lat: -2.0, lng: 115.4 }, "banjarmasin": { lat: -3.3194, lng: 114.5908 },
-            "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
-            "ketapang": { lat: -1.85, lng: 109.97 }, "palangkaraya": { lat: -2.2136, lng: 113.9108 },
-            "tarakan": { lat: 3.3, lng: 117.63 }, "malinau": { lat: 3.58, lng: 116.63 },
-            "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
-
-            // Sumatera (Tambang & Minyak)
-            "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 },
-            "muara enim": { lat: -3.65, lng: 103.77 }, "lahat": { lat: -3.80, lng: 103.54 },
-            "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
-            "bangka": { lat: -1.9, lng: 106.0 }, "belitung": { lat: -2.85, lng: 107.9 },
-            "medan": { lat: 3.5952, lng: 98.6722 }, "pekanbaru": { lat: 0.5071, lng: 101.4478 },
-            "duri": { lat: 1.28, lng: 101.21 }, "dumai": { lat: 1.67, lng: 101.45 },
-            "padang": { lat: -0.9471, lng: 100.4172 }, "jambi": { lat: -1.61, lng: 103.61 },
-            "bengkulu": { lat: -3.80, lng: 102.26 }, "bandar lampung": { lat: -5.45, lng: 105.26 },
-            "batam": { lat: 1.13, lng: 104.05 }, "tanjung pinang": { lat: 0.91, lng: 104.46 },
-            "aceh": { lat: 5.55, lng: 95.32 }, "lhokseumawe": { lat: 5.18, lng: 97.15 },
-
-            // Jawa (Head Office & Asal)
-            "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 },
-            "cilegon": { lat: -6.01, lng: 106.05 }, "serang": { lat: -6.11, lng: 106.15 },
-            "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
-            "depok": { lat: -6.4025, lng: 106.7942 }, "bandung": { lat: -6.9175, lng: 107.6191 },
-            "semarang": { lat: -6.96, lng: 110.42 }, "solo": { lat: -7.57, lng: 110.82 },
-            "surakarta": { lat: -7.57, lng: 110.82 }, "cilacap": { lat: -7.72, lng: 109.02 },
-            "kebumen": { lat: -7.67, lng: 109.65 }, "pemalang": { lat: -6.89, lng: 109.38 },
-            "yogyakarta": { lat: -7.7956, lng: 110.3695 }, "sleman": { lat: -7.7, lng: 110.35 },
-            "surabaya": { lat: -7.2575, lng: 112.7521 }, "gresik": { lat: -7.15, lng: 112.65 },
-            "malang": { lat: -7.96, lng: 112.63 }, "banyuwangi": { lat: -8.21, lng: 114.36 },
-            "denpasar": { lat: -8.67, lng: 115.21 }, "mataram": { lat: -8.58, lng: 116.11 },
-            "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
-
-            // Sulawesi & Timur (Nikel & Emas)
-            "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 },
-            "kendari": { lat: -3.9973, lng: 122.5151 }, "morowali": { lat: -2.6, lng: 121.9 },
-            "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
-            "sorowako": { lat: -2.5, lng: 121.35 }, "mamuju": { lat: -2.67, lng: 118.88 },
-            "gorontalo": { lat: 0.54, lng: 123.06 }, "timika": { lat: -4.5446, lng: 136.8874 },
-            "jayapura": { lat: -2.5, lng: 140.7 }, "sorong": { lat: -0.87, lng: 131.25 },
-            "ternate": { lat: 0.77, lng: 127.36 }, "weda": { lat: 0.15, lng: 127.9 },
-            "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
+            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 }, "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
+            "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 }, "tabalong": { lat: -2.0, lng: 115.4 },
+            "banjarmasin": { lat: -3.3194, lng: 114.5908 }, "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
+            "ketapang": { lat: -1.85, lng: 109.97 }, "palangkaraya": { lat: -2.2136, lng: 113.9108 }, "tarakan": { lat: 3.3, lng: 117.63 },
+            "malinau": { lat: 3.58, lng: 116.63 }, "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
+            "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 }, "muara enim": { lat: -3.65, lng: 103.77 },
+            "lahat": { lat: -3.80, lng: 103.54 }, "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
+            "bangka": { lat: -1.9, lng: 106.0 }, "belitung": { lat: -2.85, lng: 107.9 }, "medan": { lat: 3.5952, lng: 98.6722 },
+            "pekanbaru": { lat: 0.5071, lng: 101.4478 }, "duri": { lat: 1.28, lng: 101.21 }, "dumai": { lat: 1.67, lng: 101.45 },
+            "padang": { lat: -0.9471, lng: 100.4172 }, "jambi": { lat: -1.61, lng: 103.61 }, "bengkulu": { lat: -3.80, lng: 102.26 },
+            "bandar lampung": { lat: -5.45, lng: 105.26 }, "batam": { lat: 1.13, lng: 104.05 }, "aceh": { lat: 5.55, lng: 95.32 },
+            "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 }, "cilegon": { lat: -6.01, lng: 106.05 },
+            "serang": { lat: -6.11, lng: 106.15 }, "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
+            "depok": { lat: -6.4025, lng: 106.7942 }, "bandung": { lat: -6.9175, lng: 107.6191 }, "semarang": { lat: -6.96, lng: 110.42 },
+            "solo": { lat: -7.57, lng: 110.82 }, "surakarta": { lat: -7.57, lng: 110.82 }, "cilacap": { lat: -7.72, lng: 109.02 },
+            "kebumen": { lat: -7.67, lng: 109.65 }, "pemalang": { lat: -6.89, lng: 109.38 }, "yogyakarta": { lat: -7.7956, lng: 110.3695 },
+            "sleman": { lat: -7.7, lng: 110.35 }, "surabaya": { lat: -7.2575, lng: 112.7521 }, "gresik": { lat: -7.15, lng: 112.65 },
+            "malang": { lat: -7.96, lng: 112.63 }, "banyuwangi": { lat: -8.21, lng: 114.36 }, "denpasar": { lat: -8.67, lng: 115.21 },
+            "mataram": { lat: -8.58, lng: 116.11 }, "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
+            "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 }, "kendari": { lat: -3.9973, lng: 122.5151 },
+            "morowali": { lat: -2.6, lng: 121.9 }, "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
+            "sorowako": { lat: -2.5, lng: 121.35 }, "mamuju": { lat: -2.67, lng: 118.88 }, "gorontalo": { lat: 0.54, lng: 123.06 },
+            "timika": { lat: -4.5446, lng: 136.8874 }, "jayapura": { lat: -2.5, lng: 140.7 }, "sorong": { lat: -0.87, lng: 131.25 },
+            "ternate": { lat: 0.77, lng: 127.36 }, "weda": { lat: 0.15, lng: 127.9 }, "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
         };
 
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
-        
-        // CONTEXTUAL WHATSAPP LINK
-        const formatWhatsApp = (phone, name, category, bizName) => {
+        const getInitials = (n) => { const c = safeStr(n); return !c ? "NN" : c.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); };
+
+        // WA Contextual
+        const formatWhatsApp = (phone, name, type, details) => {
             let clean = safeStr(phone).replace(/[^0-9]/g, '');
             if (!clean) return "#";
             if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-            
-            let message = "";
-            if (category === 'business' && bizName) {
-                message = `Halo Bro ${name}, saya lihat usaha ${bizName} di Database Cakrawala. Boleh tanya info produknya?`;
-            } else if (category === 'hiring') {
-                message = `Halo Bro ${name}, saya lihat info lowongan/proyek di Database Cakrawala. Boleh diskusi?`;
-            } else if (category === 'gig') {
-                message = `Halo Bro ${name}, saya lihat di Database Cakrawala antum open for work/gig. Boleh diskusi proyek?`;
-            } else {
-                message = `Halo Bro ${name}, saya dari database Cakrawala 2005. Boleh diskusi sebentar?`;
-            }
-
-            return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
-        };
-
-        const getInitials = (name) => {
-            const clean = safeStr(name);
-            if (!clean) return "NN";
-            return clean.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            let msg = `Halo Bro ${name}, saya dari database Cakrawala.`;
+            if(type === 'hiring') msg = `Halo Bro ${name}, saya tertarik dengan info lowongan "${details}" di Database Cakrawala. Boleh diskusi?`;
+            else if(type === 'gig') msg = `Halo Bro ${name}, saya lihat antum open for project/gig di Database Cakrawala. Boleh diskusi soal skill "${details}"?`;
+            else if(type === 'business') msg = `Halo Bro ${name}, saya tertarik dengan usaha "${details}" di Database Cakrawala. Boleh tanya info produk?`;
+            return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
         };
 
         const getCoordinates = (city, province) => {
-            const cleanCity = safeStr(city).toLowerCase();
-            const cleanProv = safeStr(province).toLowerCase();
-            for (const [key, value] of Object.entries(COORDINATES)) { if (cleanCity.includes(key)) return value; }
-            if (cleanProv.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
-            if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
-            if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
-            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
-            // Fallback Provincies
-            if (cleanProv.includes('aceh')) return { lat: 4.69, lng: 96.74 };
-            if (cleanProv.includes('sumatera utara')) return { lat: 2.11, lng: 99.54 };
-            if (cleanProv.includes('sumatera barat')) return { lat: -0.73, lng: 100.8 };
-            if (cleanProv.includes('riau')) return { lat: 0.29, lng: 101.70 }; 
-            if (cleanProv.includes('jambi')) return { lat: -1.61, lng: 103.61 };
-            if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
-            if (cleanProv.includes('bengkulu')) return { lat: -3.57, lng: 102.34 };
-            if (cleanProv.includes('lampung')) return { lat: -4.55, lng: 105.40 };
-            if (cleanProv.includes('bangka')) return { lat: -2.74, lng: 106.44 };
-            if (cleanProv.includes('kepulauan riau')) return { lat: 3.94, lng: 108.14 };
-            if (cleanProv.includes('jakarta')) return { lat: -6.20, lng: 106.84 };
-            if (cleanProv.includes('jawa tengah')) return { lat: -7.15, lng: 110.14 }; 
-            if (cleanProv.includes('yogyakarta')) return { lat: -7.79, lng: 110.36 };
-            if (cleanProv.includes('jawa timur')) return { lat: -7.53, lng: 112.23 };
-            if (cleanProv.includes('banten')) return { lat: -6.40, lng: 106.06 };
-            if (cleanProv.includes('bali')) return { lat: -8.40, lng: 115.18 };
-            if (cleanProv.includes('nusa tenggara barat')) return { lat: -8.65, lng: 117.36 };
-            if (cleanProv.includes('nusa tenggara timur')) return { lat: -8.65, lng: 121.07 };
-            if (cleanProv.includes('kalimantan barat')) return { lat: -0.27, lng: 111.47 };
-            if (cleanProv.includes('kalimantan tengah')) return { lat: -1.68, lng: 113.38 };
-            if (cleanProv.includes('kalimantan selatan')) return { lat: -2.94, lng: 115.37 };
-            if (cleanProv.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
-            if (cleanProv.includes('kalimantan utara')) return { lat: 3.07, lng: 116.04 };
-            if (cleanProv.includes('sulawesi utara')) return { lat: 0.62, lng: 123.97 };
-            if (cleanProv.includes('gorontalo')) return { lat: 0.69, lng: 122.44 };
-            if (cleanProv.includes('sulawesi tengah')) return { lat: -1.43, lng: 121.44 };
-            if (cleanProv.includes('sulawesi barat')) return { lat: -2.84, lng: 119.23 };
-            if (cleanProv.includes('sulawesi selatan')) return { lat: -3.66, lng: 119.97 };
-            if (cleanProv.includes('sulawesi tenggara')) return { lat: -4.14, lng: 122.17 };
-            if (cleanProv.includes('maluku')) return { lat: -3.23, lng: 130.14 };
+            const c = safeStr(city).toLowerCase(), p = safeStr(province).toLowerCase();
+            for (const [k, v] of Object.entries(COORDINATES)) { if (c.includes(k)) return v; }
+            if (p.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
+            if (p.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
+            if (p.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
+            if (p.includes('papua')) return { lat: -4.26, lng: 138.08 };
             return null;
         };
 
-        // --- SMART CATEGORY LOGIC ---
-        function getCategory(alumni) {
-            const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
-            const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
-            const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
-            const isGig = safeStr(alumni.work_status).toLowerCase().includes('open'); // Simple check for Gig
-
-            if (isOwner) return 'business';
-            if (isHiring) return 'hiring';
-            if (isMentor) return 'mentor';
-            if (isGig) return 'gig'; // New Category
-            
-            const job = safeStr(alumni.pekerjaan).toLowerCase();
-            if (job.includes('wiraswasta')) return 'business';
+        // Categorize
+        function getCategory(d) {
+            const hiring = safeStr(d.hiring_status).toLowerCase().includes('sedang');
+            const gig = safeStr(d.work_status).toLowerCase().includes('open');
+            const owner = safeStr(d.is_owner).toLowerCase().includes('ya');
+            const mentor = safeStr(d.mentor_status).toLowerCase().includes('siap');
+            if(hiring) return 'hiring';
+            if(gig) return 'gig';
+            if(owner) return 'business';
+            if(mentor) return 'mentor';
             return 'all';
         }
 
@@ -478,116 +269,97 @@
             refreshIcon.classList.add('animate-spin');
             document.getElementById('loading-state').classList.remove('hidden');
             document.getElementById('alumni-grid').innerHTML = '';
-            
             try {
-                const response = await fetch(API_URL);
-                const result = await response.json();
-                if (result.status === 'success') {
-                    const rawData = Array.isArray(result.data) ? result.data : [];
-                    alumniData = rawData.map(d => {
-                        const n = safeStr(d.nim); const e = safeStr(d.email);
-                        if (n.includes('@') && !e.includes('@')) return { ...d, nim: e, email: n };
+                const res = await fetch(API_URL);
+                const json = await res.json();
+                if(json.status === 'success') {
+                    alumniData = (Array.isArray(json.data) ? json.data : []).map(d => {
+                        const n = safeStr(d.nim), e = safeStr(d.email);
+                        if(n.includes('@') && !e.includes('@')) return {...d, nim:e, email:n};
                         return d;
                     });
-                    applyFilters(); 
-                    renderStats();
+                    applyFilters(); renderStats();
                     document.getElementById('status-text').innerText = "Online";
                     document.getElementById('status-text').className = "text-green-500";
                     document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-green-500 animate-pulse";
                     document.getElementById('loading-state').classList.add('hidden');
-                } else throw new Error("API error");
-            } catch (error) {
-                console.error(error);
-                document.getElementById('status-text').innerText = "Offline";
-                document.getElementById('status-text').className = "text-red-500";
-                document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-red-500";
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('empty-state').classList.remove('hidden');
-            } finally { refreshIcon.classList.remove('animate-spin'); }
+                }
+            } catch(e) { console.error(e); } finally { refreshIcon.classList.remove('animate-spin'); }
         }
 
         function setCategoryFilter(cat) {
             activeCategory = cat;
             document.querySelectorAll('.cat-btn').forEach(btn => {
-                if(btn.dataset.cat === cat) {
-                    btn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
-                    btn.classList.add('bg-slate-800', 'text-white', 'border-slate-800');
-                } else {
-                    btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
-                    btn.classList.remove('bg-slate-800', 'text-white', 'border-slate-800');
-                }
+                const isActive = btn.dataset.cat === cat;
+                btn.className = `px-4 py-1.5 rounded-full text-xs font-bold transition-colors cat-btn border ${isActive ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'}`;
             });
             applyFilters();
         }
 
         function applyFilters() {
-            const searchTerm = safeStr(document.getElementById('search-input').value).toLowerCase();
-            
-            filteredData = alumniData.filter(item => {
-                const matchesSearch = 
-                    safeStr(item.nama).toLowerCase().includes(searchTerm) ||
-                    safeStr(item.perusahaan).toLowerCase().includes(searchTerm) ||
-                    safeStr(item.keahlian).toLowerCase().includes(searchTerm) || 
-                    safeStr(item.biz_name).toLowerCase().includes(searchTerm) || 
-                    safeStr(item.kota).toLowerCase().includes(searchTerm);
-                
-                let matchesCategory = true;
-                // Allow overlapping categories in filtering
-                if (activeCategory === 'business') matchesCategory = safeStr(item.is_owner).toLowerCase().includes('ya');
-                else if (activeCategory === 'gig') matchesCategory = safeStr(item.work_status).toLowerCase().includes('open') || safeStr(item.hiring_status).toLowerCase().includes('sedang');
-                else if (activeCategory === 'mentor') matchesCategory = safeStr(item.mentor_status).toLowerCase().includes('siap');
-                else if (activeCategory === 'hiring') matchesCategory = safeStr(item.hiring_status).toLowerCase().includes('sedang');
-                
-                return matchesSearch && matchesCategory;
+            const term = safeStr(document.getElementById('search-input').value).toLowerCase();
+            filteredData = alumniData.filter(d => {
+                const matchSearch = [d.nama, d.perusahaan, d.keahlian, d.biz_name, d.kota].some(v => safeStr(v).toLowerCase().includes(term));
+                let matchCat = true;
+                if (activeCategory === 'business') matchCat = safeStr(d.is_owner).toLowerCase().includes('ya');
+                else if (activeCategory === 'gig') matchCat = safeStr(d.work_status).toLowerCase().includes('open') || safeStr(d.hiring_status).toLowerCase().includes('sedang');
+                else if (activeCategory === 'mentor') matchCat = safeStr(d.mentor_status).toLowerCase().includes('siap');
+                else if (activeCategory === 'hiring') matchCat = safeStr(d.hiring_status).toLowerCase().includes('sedang');
+                return matchSearch && matchCat;
             });
-
             renderList();
-            if (viewMode === 'map' && mapInstance) renderLeafletMarkers();
+            if(viewMode === 'map' && mapInstance) renderLeafletMarkers();
         }
 
         function renderList() {
             const grid = document.getElementById('alumni-grid');
             grid.innerHTML = '';
-            if (filteredData.length === 0) { document.getElementById('empty-state').classList.remove('hidden'); return; }
+            if(filteredData.length === 0) { document.getElementById('empty-state').classList.remove('hidden'); return; }
             document.getElementById('empty-state').classList.add('hidden');
-            
-            filteredData.forEach(alumni => {
-                const name = safeStr(alumni.nama) || "Tanpa Nama";
-                
-                // DATA LOGIC for BADGES
-                const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
-                const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
-                const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
-                const isGig = safeStr(alumni.work_status).toLowerCase().includes('open');
-                
-                let badges = "";
-                if (isHiring) badges += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-red-200 mr-1">HIRING</span>`;
-                if (isOwner) badges += `<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-yellow-200 mr-1">OWNER</span>`;
-                if (isMentor) badges += `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200 mr-1">MENTOR</span>`;
-                if (isGig) badges += `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-purple-200 mr-1">GIG/OPEN</span>`;
-                if (!badges) badges = `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold border border-slate-200">ALUMNI</span>`;
+
+            filteredData.forEach(d => {
+                const isHiring = safeStr(d.hiring_status).toLowerCase().includes('sedang');
+                const isGig = safeStr(d.work_status).toLowerCase().includes('open');
+                const isOwner = safeStr(d.is_owner).toLowerCase().includes('ya');
+                const isMentor = safeStr(d.mentor_status).toLowerCase().includes('siap');
+
+                let badges = '';
+                if(isHiring) badges += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-red-200 mr-1">HIRING</span>`;
+                if(isGig) badges += `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-purple-200 mr-1">GIG/OPEN</span>`;
+                if(isOwner) badges += `<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-yellow-200 mr-1">OWNER</span>`;
+                if(isMentor) badges += `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200 mr-1">MENTOR</span>`;
+                if(!badges) badges = `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold border border-slate-200">ALUMNI</span>`;
+
+                // ACTION BUTTON LOGIC
+                let actionBtn = "";
+                if(isHiring) {
+                    const info = safeStr(d.biz_desc) || "Cek Posisi";
+                    actionBtn = `<button onclick="openModal('${encodeURIComponent(JSON.stringify(d))}')" class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex flex-col items-center justify-center transition-colors shadow-sm"><span class="flex items-center uppercase tracking-wider text-[10px] mb-1"><i data-lucide="briefcase" class="w-3 h-3 mr-1"></i> Sedang Hiring</span><span class="text-sm line-clamp-1">${info}</span></button>`;
+                } else if(isGig) {
+                    const info = safeStr(d.keahlian) || "Cek Keahlian";
+                    actionBtn = `<button onclick="openModal('${encodeURIComponent(JSON.stringify(d))}')" class="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex flex-col items-center justify-center transition-colors shadow-sm"><span class="flex items-center uppercase tracking-wider text-[10px] mb-1"><i data-lucide="zap" class="w-3 h-3 mr-1"></i> Siap Freelance</span><span class="text-sm line-clamp-1">${info}</span></button>`;
+                } else if(isOwner) {
+                     const info = safeStr(d.biz_name) || "Lihat Usaha";
+                     actionBtn = `<button onclick="openModal('${encodeURIComponent(JSON.stringify(d))}')" class="w-full mt-3 bg-yellow-500 hover:bg-yellow-600 text-slate-900 text-xs font-bold py-2 px-4 rounded-lg flex flex-col items-center justify-center transition-colors shadow-sm"><span class="flex items-center uppercase tracking-wider text-[10px] mb-1"><i data-lucide="store" class="w-3 h-3 mr-1"></i> Lapak Alumni</span><span class="text-sm line-clamp-1">${info}</span></button>`;
+                }
 
                 const card = `
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col h-full group">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col h-full">
                     <div class="p-5 flex-1">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-slate-800 text-yellow-500 flex items-center justify-center font-bold text-lg shadow-inner shrink-0 group-hover:bg-yellow-500 group-hover:text-slate-900 transition-colors">${getInitials(name)}</div>
-                                <div class="min-w-0">
-                                    <h3 class="font-bold text-slate-800 truncate group-hover:text-blue-700 transition-colors">${name}</h3>
-                                    <div class="flex flex-wrap items-center mt-1 gap-1">${badges}</div>
-                                </div>
-                            </div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-slate-800 text-yellow-500 flex items-center justify-center font-bold text-lg shadow-inner shrink-0">${getInitials(d.nama)}</div>
+                            <div class="min-w-0"><h3 class="font-bold text-slate-800 truncate">${safeStr(d.nama)}</h3><div class="flex flex-wrap items-center mt-1 gap-1">${badges}</div></div>
                         </div>
                         <div class="space-y-2 mb-4 text-sm text-slate-600">
-                            <div class="flex items-start"><i data-lucide="building-2" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-2 font-medium">${safeStr(alumni.perusahaan) || "-"}</span></div>
-                            <div class="flex items-start"><i data-lucide="briefcase" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-1">${safeStr(alumni.pekerjaan) || "-"}</span></div>
-                            <div class="flex items-start"><i data-lucide="map-pin" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-1">${safeStr(alumni.kota) || "-"}</span></div>
+                            <div class="flex items-start"><i data-lucide="building-2" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-2 font-medium">${safeStr(d.perusahaan) || "-"}</span></div>
+                            <div class="flex items-start"><i data-lucide="briefcase" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-1">${safeStr(d.pekerjaan) || "-"}</span></div>
+                            <div class="flex items-start"><i data-lucide="map-pin" class="w-4 h-4 mr-2 mt-0.5 shrink-0 text-slate-400"></i><span class="line-clamp-1">${safeStr(d.kota) || "-"}</span></div>
                         </div>
+                        ${actionBtn}
                     </div>
                     <div class="bg-slate-50 p-3 border-t border-slate-100 flex items-center gap-2">
-                        ${alumni.hp ? `<a href="${formatWhatsApp(alumni.hp, name, activeCategory, alumni.biz_name)}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
-                        <button onclick="openModal('${encodeURIComponent(JSON.stringify(alumni))}')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors ml-auto"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                        ${d.hp ? `<a href="${formatWhatsApp(d.hp, d.nama, 'general', '')}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
+                        <button onclick="openModal('${encodeURIComponent(JSON.stringify(d))}')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors ml-auto"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                     </div>
                 </div>`;
                 grid.insertAdjacentHTML('beforeend', card);
@@ -595,25 +367,23 @@
             lucide.createIcons();
         }
 
-        // --- STATS ---
         function renderStats() {
-            const stats = { 
-                total: alumniData.length, 
-                business: alumniData.filter(d => safeStr(d.is_owner).toLowerCase().includes('ya')).length,
+            const s = {
+                total: alumniData.length,
                 hiring: alumniData.filter(d => safeStr(d.hiring_status).toLowerCase().includes('sedang')).length,
-                mentor: alumniData.filter(d => safeStr(d.mentor_status).toLowerCase().includes('siap')).length
+                gig: alumniData.filter(d => safeStr(d.work_status).toLowerCase().includes('open')).length,
+                biz: alumniData.filter(d => safeStr(d.is_owner).toLowerCase().includes('ya')).length
             };
             document.getElementById('stats-container').innerHTML = `
-                ${statCard('Total Alumni', stats.total, 'users', 'bg-blue-600')}
-                ${statCard('Pasar Internal', stats.business, 'store', 'bg-yellow-600')}
-                ${statCard('Sedang Hiring', stats.hiring, 'briefcase', 'bg-red-600')}
-                ${statCard('Mentor Siap', stats.mentor, 'zap', 'bg-green-600')}
+                ${statCard('Total Alumni', s.total, 'users', 'bg-blue-600')}
+                ${statCard('Sedang Hiring', s.hiring, 'briefcase', 'bg-red-600')}
+                ${statCard('Bursa Proyek', s.gig, 'zap', 'bg-purple-600')}
+                ${statCard('Pasar Internal', s.biz, 'store', 'bg-yellow-600')}
             `;
             lucide.createIcons();
         }
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
-        // ... Leaflet Functions (Identical to previous) ...
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
@@ -621,102 +391,118 @@
                 markersLayer = L.layerGroup().addTo(mapInstance);
             } else markersLayer.clearLayers();
 
-            const locations = {};
-            filteredData.forEach(p => { 
-                const coords = getCoordinates(p.kota, p.provinsi);
-                if (coords) {
-                    const key = `${coords.lat},${coords.lng}`;
-                    const city = safeStr(p.kota) || safeStr(p.provinsi) || "Lokasi";
-                    if (!locations[key]) locations[key] = { ...coords, count: 0, people: [], city };
-                    locations[key].count++; locations[key].people.push(p);
+            const locs = {};
+            filteredData.forEach(p => {
+                const c = getCoordinates(p.kota, p.provinsi);
+                if (c) {
+                    const key = `${c.lat},${c.lng}`;
+                    if (!locs[key]) locs[key] = { ...c, count: 0, people: [], city: p.kota||"Lokasi" };
+                    locs[key].count++; locs[key].people.push(p);
                 }
             });
 
-            // Rebuild Map Filter
+            // Map Filter
             const select = document.getElementById('map-filter');
-            const savedVal = select.value === 'all' ? mapFilterArea : select.value;
             while(select.options.length > 2) select.remove(2);
-            [...new Set(Object.values(locations).map(l=>l.city))].sort().forEach(c => {
+            [...new Set(Object.values(locs).map(l=>l.city))].sort().forEach(c => {
                 const opt = document.createElement('option'); opt.value = c; opt.text = c; select.add(opt);
             });
-            if([...select.options].some(o=>o.value===savedVal)) select.value = savedVal; else { select.value='all'; mapFilterArea='all'; }
+            select.value = mapFilterArea;
 
-            let bounds = L.latLngBounds(), hasM = false;
-            Object.values(locations).forEach(loc => {
-                if (mapFilterArea !== 'all' && loc.city !== mapFilterArea) return;
+            const bounds = L.latLngBounds(); let hasM = false;
+            Object.values(locs).forEach(l => {
+                if(mapFilterArea!=='all' && l.city!==mapFilterArea) return;
                 
-                // Logic: Jika di lokasi ini ada minimal 1 business owner, tandai kuning.
-                const hasBusiness = loc.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
+                // Color Logic
+                const isBiz = l.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
+                const isHiring = l.people.some(p => safeStr(p.hiring_status).toLowerCase().includes('sedang'));
+                const isGig = l.people.some(p => safeStr(p.work_status).toLowerCase().includes('open'));
                 
-                // Jika hasBusiness=TRUE, class-nya marker-pin (default kuning). 
-                // Jika FALSE, class-nya marker-pin blue.
-                const cssClass = hasBusiness ? '' : 'blue'; 
+                let css = 'blue';
+                if(isHiring) css = 'red';
+                else if(isGig) css = 'purple';
+                else if(isBiz) css = ''; // yellow default
 
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="marker-pin ${cssClass}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${loc.count}</span>`,
-                    iconSize: [30, 42], iconAnchor: [15, 42]
-                });
-                const ppl = loc.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
-                L.marker([loc.lat, loc.lng], {icon}).bindPopup(`<b>${loc.city}</b><ul style="padding-left:15px;margin:5px 0">${ppl}</ul>`).addTo(markersLayer);
-                bounds.extend([loc.lat, loc.lng]); hasM = true;
+                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin ${css}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
+                const list = l.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
+                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.city}</b><ul style="padding-left:15px">${list}</ul>`).addTo(markersLayer);
+                bounds.extend([l.lat, l.lng]); hasM = true;
             });
-            document.getElementById('map-counter').innerText = `${hasM ? Object.values(locations).filter(l => mapFilterArea === 'all' || l.city === mapFilterArea).length : 0} titik lokasi`;
-            if (hasM) mapInstance.fitBounds(bounds, { padding: [50,50], maxZoom: 10 }); else mapInstance.setView([-2.5, 118], 5);
+            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
-        function openModal(dataStr) {
-            const d = JSON.parse(decodeURIComponent(dataStr));
-            const safe = (val) => safeStr(val) || "-";
-            
-            document.getElementById('modal-initials').innerText = getInitials(d.nama);
-            document.getElementById('modal-name').innerText = safe(d.nama);
-            document.getElementById('modal-job').innerText = safe(d.pekerjaan);
-            document.getElementById('modal-company').innerText = safe(d.perusahaan);
-            document.getElementById('modal-field').innerText = safe(d.bidang);
-            document.getElementById('modal-nim').innerText = safe(d.nim);
-            document.getElementById('modal-domicile').innerText = safe(d.domisili);
-            document.getElementById('modal-city').innerText = `${safe(d.kota)}, ${safe(d.provinsi)}`;
-            document.getElementById('modal-phone').innerText = safe(d.hp);
-            document.getElementById('modal-email').innerText = safe(d.email);
-            
-            const skillSec = document.getElementById('modal-skills-section');
-            if (d.keahlian || d.sertifikasi) {
-                skillSec.classList.remove('hidden');
-                document.getElementById('modal-skills').innerText = `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`;
-            } else skillSec.classList.add('hidden');
+        // --- SAFE DOM HELPERS ---
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = val;
+        };
+        const show = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        };
+        const hide = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        };
 
-            const bizSec = document.getElementById('modal-business-section');
-            const isOwner = safeStr(d.is_owner).toLowerCase().includes('ya');
-            const tagsContainer = document.getElementById('modal-tags');
-            tagsContainer.innerHTML = '';
+        function openModal(json) {
+            const d = JSON.parse(decodeURIComponent(json));
+            const safe = (v) => safeStr(v) || "-";
             
-            if (isOwner) {
-                tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-medium border border-yellow-200">Owner Bisnis</span>`);
-                if(d.biz_name) {
-                    bizSec.classList.remove('hidden');
-                    document.getElementById('modal-biz-name').innerText = safeStr(d.biz_name);
-                    document.getElementById('modal-biz-desc').innerText = safeStr(d.biz_desc);
+            setText('modal-initials', getInitials(d.nama));
+            setText('modal-name', safe(d.nama));
+            setText('modal-job', safe(d.pekerjaan));
+            setText('modal-company', safe(d.perusahaan));
+            setText('modal-field', safe(d.bidang));
+            setText('modal-nim', safe(d.nim));
+            setText('modal-domicile', safe(d.domisili));
+            setText('modal-city', `${safe(d.kota)}, ${safe(d.provinsi)}`);
+            setText('modal-phone', safe(d.hp));
+            setText('modal-email', safe(d.email));
+
+            // SKILLS
+            if (d.keahlian || d.sertifikasi) {
+                show('modal-skills-section');
+                setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
+            } else hide('modal-skills-section');
+
+            // HIRING
+            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
+                show('modal-hiring-box');
+                setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
+            } else hide('modal-hiring-box');
+
+            // GIG
+            if(safeStr(d.work_status).toLowerCase().includes('open')) {
+                show('modal-gig-box');
+                setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
+            } else hide('modal-gig-box');
+
+            // BUSINESS
+            if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
+                show('modal-biz-box');
+                setText('modal-biz-name', safeStr(d.biz_name));
+                setText('modal-biz-desc', safeStr(d.biz_desc));
+            } else hide('modal-biz-box');
+
+            // WA BUTTON
+            const btn = document.getElementById('modal-wa-link');
+            if (btn) {
+                if(d.hp) {
+                    let type = 'general';
+                    let details = '';
+                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
+                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
+                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
+                    
+                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
                 }
-            } else {
-                bizSec.classList.add('hidden');
             }
 
-            if (safeStr(d.hiring_status).toLowerCase().includes('sedang')) tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-1 rounded font-medium border border-red-200">Sedang Hiring</span>`);
-            if (safeStr(d.mentor_status).toLowerCase().includes('siap')) tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded font-medium border border-green-200">Siap Mentor</span>`);
-            
-            if(tagsContainer.innerHTML === '') tagsContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada data ekosistem</span>';
-
-            const liRow = document.getElementById('modal-linkedin-row');
-            if (d.linkedin) { liRow.classList.remove('hidden'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else liRow.classList.add('hidden');
-
-            const btn = document.getElementById('modal-wa-link');
-            if(d.hp) { 
-                btn.href=formatWhatsApp(d.hp, d.nama, activeCategory, d.biz_name); 
-                btn.classList.remove('hidden'); 
-                btn.classList.add('bg-slate-800','text-white','hover:bg-slate-900'); 
-                btn.innerText='Hubungi via WA'; 
-            } else { btn.href='#'; btn.classList.add('hidden'); }
+            if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
 
             const m = document.getElementById('detail-modal'); m.classList.remove('hidden');
             setTimeout(()=> { m.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95','opacity-0'); },10);
@@ -725,11 +511,10 @@
             const m = document.getElementById('detail-modal'); m.classList.add('opacity-0'); document.getElementById('modal-content').classList.add('scale-95','opacity-0');
             setTimeout(()=>m.classList.add('hidden'), 300);
         }
-        
+
         document.getElementById('search-input').addEventListener('input', () => applyFilters());
         document.getElementById('map-filter').addEventListener('change', (e) => { mapFilterArea = e.target.value; renderLeafletMarkers(); });
         document.getElementById('detail-modal').addEventListener('click', (e) => { if(e.target.id==='detail-modal') closeModal(); });
-        
         document.getElementById('btn-map-view').addEventListener('click', () => {
             viewMode='map'; document.getElementById('list-view-container').classList.add('hidden'); document.getElementById('map-view-container').classList.remove('hidden');
             document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
