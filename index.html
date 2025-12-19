@@ -14,21 +14,41 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Leaflet CSS & JS -->
+    <!-- Leaflet CSS & JS (Peta) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #eab308; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #eab308;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Marker Peta Style */
         .custom-div-icon { background: transparent; border: none; }
-        .marker-pin { width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308; position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white; transition: all 0.3s; }
-        .marker-pin::after { content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px; background: #fff; position: absolute; border-radius: 50%; }
+        .marker-pin {
+            width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308;
+            position: absolute; transform: rotate(-45deg); left: 50%; top: 50%;
+            margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white;
+            transition: all 0.3s;
+        }
+        .marker-pin::after {
+            content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px;
+            background: #fff; position: absolute; border-radius: 50%;
+        }
         .marker-pin.blue { background: #2563eb; }
         .marker-pin.red { background: #dc2626; }
         .marker-pin.purple { background: #9333ea; }
@@ -47,12 +67,14 @@
     <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
+                <!-- LOGO -->
                 <img src="https://i.ibb.co.com/NdhNm6cC/Untitled-design-2.png" alt="Logo Cakrawala" class="h-14 w-auto object-contain">
                 <div class="flex flex-col">
                     <h1 class="font-bold text-xl tracking-tight leading-none">Database</h1>
                     <span class="text-yellow-500 font-bold text-lg tracking-wide leading-none">Cakrawala 2005</span>
                 </div>
             </div>
+            
             <div class="flex items-center space-x-3">
                 <div class="hidden sm:flex text-xs text-right mr-2 items-center">
                     <span id="status-indicator" class="flex items-center justify-end font-bold mr-3 text-slate-500">
@@ -70,7 +92,7 @@
     <!-- MAIN CONTENT -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         
-        <!-- HERO -->
+        <!-- HERO & SEARCH -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Ecosystem Dashboard</h2>
             <p class="text-slate-500 mb-6">Peta kekuatan, bisnis, dan profesional angkatan 2005.</p>
@@ -82,172 +104,350 @@
                     </div>
                     <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-4 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 shadow-sm transition-all" placeholder="Cari nama, keahlian, atau bisnis..." />
                 </div>
+                
+                <!-- Toggle View Buttons -->
                 <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
-                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow"><i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar</button>
-                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50"><i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta</button>
+                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow">
+                        <i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar
+                    </button>
+                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50">
+                        <i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta
+                    </button>
                 </div>
             </div>
             
             <!-- SMART FILTERS -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
                 <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-800 transition-colors cat-btn" data-cat="all">Semua</button>
+                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal (Produk)</button>
                 <button onclick="setCategoryFilter('hiring')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-red-500 hover:text-red-600 transition-colors cat-btn" data-cat="hiring">Sedang Hiring</button>
-                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek</button>
-                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal</button>
+                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek (Gig)</button>
                 <button onclick="setCategoryFilter('mentor')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-green-500 hover:text-green-600 transition-colors cat-btn" data-cat="mentor">Mentor Ahli</button>
             </div>
         </div>
 
         <!-- DASHBOARD STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container">
+            <!-- Stats di-inject via JS -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4 animate-pulse">
+                <div class="w-12 h-12 bg-slate-200 rounded-lg"></div>
+                <div class="flex-1 space-y-2"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-6 bg-slate-200 rounded w-1/2"></div></div>
+            </div>
+        </div>
 
-        <!-- LIST VIEW -->
+        <!-- CONTENT AREA: LIST VIEW -->
         <div id="list-view-container" class="block">
-            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards di-inject via JS -->
+            </div>
             <div id="loading-state" class="text-center py-20">
-                <div class="loader mx-auto mb-4"></div><p class="text-slate-500">Memuat ekosistem...</p>
+                <div class="loader mx-auto mb-4"></div>
+                <p class="text-slate-500">Memuat data dari Google Sheet...</p>
             </div>
             <div id="empty-state" class="hidden text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
-                <i data-lucide="search-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                <i data-lucide="users" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
                 <h3 class="text-lg font-medium text-slate-900">Data Tidak Ditemukan</h3>
             </div>
         </div>
 
-        <!-- MAP VIEW -->
+        <!-- CONTENT AREA: MAP VIEW -->
         <div id="map-view-container" class="hidden">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden relative flex flex-col h-[600px]">
+                
+                <!-- Map Header & Controls -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                    <div><p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p><p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p></div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p>
+                        <p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p>
+                    </div>
+
+                    <!-- Filter Dropdown Lokasi -->
                     <div class="relative z-[1000]"> 
-                        <select id="map-filter" class="pl-3 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm cursor-pointer min-w-[200px]">
-                            <option value="all">Semua Lokasi</option><option disabled>──────────</option>
+                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                            <i data-lucide="filter" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <select id="map-filter" class="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm appearance-none cursor-pointer hover:bg-slate-50 transition-colors min-w-[200px]">
+                            <option value="all">Semua Lokasi</option>
+                            <option disabled>──────────</option>
                         </select>
-                    </div>
-                </div>
-                <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
-                    <div id="leaflet-map" class="absolute inset-0 z-0"></div>
-                    <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-slate-200 z-[500] text-xs space-y-2">
-                        <div class="font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1">Keterangan:</div>
-                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#dc2626] border border-white shadow mr-2"></span><span>Hiring</span></div>
-                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#9333ea] border border-white shadow mr-2"></span><span>Bursa Proyek</span></div>
-                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span><span>Bisnis</span></div>
-                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span><span>Alumni Biasa</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-slate-900 text-slate-400 py-8 mt-12 border-t border-slate-800"><div class="max-w-7xl mx-auto px-4 text-center"><p class="mb-2">&copy; 2025 Paguyuban Alumni Tambang UPNVY Angkatan 2005.</p></div></footer>
-
-    <!-- MODAL -->
-    <div id="detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="modal-content">
-            <div class="bg-slate-800 p-6 flex justify-between items-start shrink-0">
-                <div class="flex items-center space-x-4">
-                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">NN</div>
-                    <div><h2 id="modal-name" class="text-xl font-bold text-white">Nama</h2><p id="modal-job" class="text-yellow-400 text-sm font-medium">Pekerjaan</p></div>
-                </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="p-6 space-y-6 overflow-y-auto">
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><p class="text-xs text-slate-500">Perusahaan</p><p id="modal-company" class="font-medium text-slate-800">-</p></div>
-                    <div id="modal-skills-section" class="hidden"><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p><p id="modal-skills" class="text-sm text-slate-800">-</p></div></div>
-                    <div class="flex gap-4">
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">Bidang</p><p id="modal-field" class="font-medium text-slate-800">-</p></div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">NIM</p><p id="modal-nim" class="font-medium text-slate-800">-</p></div>
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                            <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 rotate-90"></i>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Special Info Boxes (RESTORED & FIXED) -->
+                <!-- Map Container -->
+                <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
+                    <div id="leaflet-map" class="absolute inset-0 z-0"></div>
+                    
+                    <!-- LEGEND (KETERANGAN PETA) -->
+                    <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-slate-200 z-[500] text-xs space-y-2">
+                        <div class="font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1">Keterangan:</div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#dc2626] border border-white shadow mr-2"></span>
+                            <span>Hiring</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#9333ea] border border-white shadow mr-2"></span>
+                            <span>Bursa Proyek</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span>
+                            <span>Bisnis</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span>
+                            <span>Alumni Biasa</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-2 text-[10px] text-slate-400 text-center italic bg-slate-50 py-1 rounded">
+                    *Peta interaktif powered by OpenStreetMap & LeafletJS.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="mb-2">&copy; 2025 Paguyuban Alumni Tambang UPNVY Angkatan 2005.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL DETAIL -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="modal-content">
+            <!-- Modal Header -->
+            <div class="bg-slate-800 p-6 flex justify-between items-start shrink-0">
+                <div class="flex items-center space-x-4">
+                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">
+                        NN
+                    </div>
+                    <div>
+                        <h2 id="modal-name" class="text-xl font-bold text-white">Nama Alumni</h2>
+                        <p id="modal-job" class="text-yellow-400 text-sm font-medium">Pekerjaan</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 space-y-6 overflow-y-auto">
+                
+                <!-- 1. Informasi Profesional Dasar -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <p class="text-xs text-slate-500">Perusahaan / Instansi</p>
+                        <p id="modal-company" class="font-medium text-slate-800">-</p>
+                    </div>
+                    
+                    <!-- NEW: Skills Section -->
+                    <div id="modal-skills-section" class="hidden">
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p>
+                            <p id="modal-skills" class="text-sm text-slate-800">-</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
+                            <p class="text-xs text-slate-500">Bidang</p>
+                            <p id="modal-field" class="font-medium text-slate-800">-</p>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
+                            <p class="text-xs text-slate-500">NIM</p>
+                            <p id="modal-nim" class="font-medium text-slate-800">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. SPECIAL INFO SECTIONS -->
+                
+                <!-- Hiring -->
                 <div id="modal-hiring-box" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="briefcase" class="w-3 h-3 mr-2"></i> Info Lowongan</h3>
+                    <h3 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 flex items-center">
+                        <i data-lucide="briefcase" class="w-3 h-3 mr-2"></i> Info Lowongan
+                    </h3>
                     <p class="text-sm text-slate-800 font-medium" id="modal-hiring-detail">-</p>
                     <p class="text-[10px] text-slate-500 mt-1 italic">Klik tombol Hubungi untuk melamar.</p>
                 </div>
 
+                <!-- Gig -->
                 <div id="modal-gig-box" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="zap" class="w-3 h-3 mr-2"></i> Bursa Proyek</h3>
+                    <h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center">
+                        <i data-lucide="zap" class="w-3 h-3 mr-2"></i> Bursa Proyek
+                    </h3>
                     <p class="text-sm text-slate-800 font-medium" id="modal-gig-detail">-</p>
                     <p class="text-[10px] text-slate-500 mt-1 italic">Menawarkan keahlian/jasa di atas.</p>
                 </div>
 
+                <!-- Business -->
                 <div id="modal-biz-box" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="store" class="w-3 h-3 mr-2"></i> Pasar Internal</h3>
+                    <h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1 flex items-center">
+                        <i data-lucide="store" class="w-3 h-3 mr-2"></i> Pasar Internal
+                    </h3>
                     <p class="font-bold text-slate-900 text-sm" id="modal-biz-name">-</p>
                     <p class="text-sm text-slate-700 mt-1" id="modal-biz-desc">-</p>
                 </div>
 
-                <!-- Contact -->
+                <!-- 3. Kontak & Lokasi -->
                 <div class="space-y-3 pt-2 border-t border-slate-100">
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">Domisili</p><p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p><p id="modal-city" class="text-xs text-slate-500">-</p></div></div>
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg"><div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3"><i data-lucide="phone" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">HP</p><p id="modal-phone" class="text-sm font-medium text-slate-800">-</p></div></div>
-                    <div id="modal-linkedin-row" class="flex items-center p-2 hover:bg-slate-50 rounded-lg hidden"><div class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center mr-3"><i data-lucide="linkedin" class="w-4 h-4"></i></div><a id="modal-linkedin-link" href="#" target="_blank" class="text-sm font-medium text-blue-700 hover:underline">Lihat Profil LinkedIn</a></div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Domisili</p>
+                            <p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p>
+                            <p id="modal-city" class="text-xs text-slate-500">-</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Nomor HP</p>
+                            <p id="modal-phone" class="text-sm font-medium text-slate-800">-</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-3">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Email</p>
+                            <p id="modal-email" class="text-sm font-medium text-slate-800">-</p>
+                        </div>
+                    </div>
+                    
+                    <!-- LinkedIn Link -->
+                    <div id="modal-linkedin-row" class="flex items-center p-2 hover:bg-slate-50 rounded-lg hidden transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center mr-3">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i>
+                        </div>
+                        <a id="modal-linkedin-link" href="#" target="_blank" class="text-sm font-medium text-blue-700 hover:underline">
+                            Lihat Profil LinkedIn
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            <!-- Modal Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
-                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">Tutup</button>
-                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">Hubungi via WA</a>
+                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">
+                    Tutup
+                </button>
+                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">
+                    Hubungi via WA
+                </a>
             </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzcUYrwhO2-LY950URvDmsL9vGpL42052tAqZKAKyGWlWba8c7zDYzKo7KIkcLP8bQX/exec";
-        let alumniData=[], filteredData=[], viewMode='list', mapFilterArea='all', activeCategory='all', mapInstance=null, markersLayer=null;
+        // --- CONFIG & STATE ---
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvpxp2jcNJlrR_YIoGCSWERq7jAuYjBhsTmnEnMdL05JaBJEIjLJhEvBGGhYKPNSY_/exec";
         
+        let alumniData = [];
+        let filteredData = [];
+        let viewMode = 'list';
+        let mapFilterArea = 'all';
+        let activeCategory = 'all';
+        let mapInstance = null; 
+        let markersLayer = null;
+
+        // --- DATABASE KOORDINAT LENGKAP (RESTORED & EXTENDED) ---
         const COORDINATES = {
+            // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
-            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 }, "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
-            "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 }, "tabalong": { lat: -2.0, lng: 115.4 },
-            "banjarmasin": { lat: -3.3194, lng: 114.5908 }, "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
-            "ketapang": { lat: -1.85, lng: 109.97 }, "palangkaraya": { lat: -2.2136, lng: 113.9108 }, "tarakan": { lat: 3.3, lng: 117.63 },
-            "malinau": { lat: 3.58, lng: 116.63 }, "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
-            "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 }, "muara enim": { lat: -3.65, lng: 103.77 },
-            "lahat": { lat: -3.80, lng: 103.54 }, "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
-            "bangka": { lat: -1.9, lng: 106.0 }, "belitung": { lat: -2.85, lng: 107.9 }, "medan": { lat: 3.5952, lng: 98.6722 },
-            "pekanbaru": { lat: 0.5071, lng: 101.4478 }, "duri": { lat: 1.28, lng: 101.21 }, "dumai": { lat: 1.67, lng: 101.45 },
-            "padang": { lat: -0.9471, lng: 100.4172 }, "jambi": { lat: -1.61, lng: 103.61 }, "bengkulu": { lat: -3.80, lng: 102.26 },
-            "bandar lampung": { lat: -5.45, lng: 105.26 }, "batam": { lat: 1.13, lng: 104.05 }, "aceh": { lat: 5.55, lng: 95.32 },
-            "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 }, "cilegon": { lat: -6.01, lng: 106.05 },
-            "serang": { lat: -6.11, lng: 106.15 }, "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
-            "depok": { lat: -6.4025, lng: 106.7942 }, "bandung": { lat: -6.9175, lng: 107.6191 }, "semarang": { lat: -6.96, lng: 110.42 },
-            "solo": { lat: -7.57, lng: 110.82 }, "surakarta": { lat: -7.57, lng: 110.82 }, "cilacap": { lat: -7.72, lng: 109.02 },
-            "kebumen": { lat: -7.67, lng: 109.65 }, "pemalang": { lat: -6.89, lng: 109.38 }, "yogyakarta": { lat: -7.7956, lng: 110.3695 },
-            "sleman": { lat: -7.7, lng: 110.35 }, "surabaya": { lat: -7.2575, lng: 112.7521 }, "gresik": { lat: -7.15, lng: 112.65 },
-            "malang": { lat: -7.96, lng: 112.63 }, "banyuwangi": { lat: -8.21, lng: 114.36 }, "denpasar": { lat: -8.67, lng: 115.21 },
-            "mataram": { lat: -8.58, lng: 116.11 }, "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
-            "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 }, "kendari": { lat: -3.9973, lng: 122.5151 },
-            "morowali": { lat: -2.6, lng: 121.9 }, "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
-            "sorowako": { lat: -2.5, lng: 121.35 }, "mamuju": { lat: -2.67, lng: 118.88 }, "gorontalo": { lat: 0.54, lng: 123.06 },
-            "timika": { lat: -4.5446, lng: 136.8874 }, "jayapura": { lat: -2.5, lng: 140.7 }, "sorong": { lat: -0.87, lng: 131.25 },
-            "ternate": { lat: 0.77, lng: 127.36 }, "weda": { lat: 0.15, lng: 127.9 }, "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
+            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
+            "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
+            "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 },
+            "tabalong": { lat: -2.0, lng: 115.4 }, "banjarmasin": { lat: -3.3194, lng: 114.5908 },
+            "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
+            "ketapang": { lat: -1.85, lng: 109.97 }, "palangkaraya": { lat: -2.2136, lng: 113.9108 },
+            "tarakan": { lat: 3.3, lng: 117.63 }, "malinau": { lat: 3.58, lng: 116.63 },
+            "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
+
+            // Sumatera (Tambang & Minyak)
+            "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 },
+            "muara enim": { lat: -3.65, lng: 103.77 }, "lahat": { lat: -3.80, lng: 103.54 },
+            "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
+            "bangka": { lat: -1.9, lng: 106.0 }, "belitung": { lat: -2.85, lng: 107.9 },
+            "medan": { lat: 3.5952, lng: 98.6722 }, "pekanbaru": { lat: 0.5071, lng: 101.4478 },
+            "duri": { lat: 1.28, lng: 101.21 }, "dumai": { lat: 1.67, lng: 101.45 },
+            "padang": { lat: -0.9471, lng: 100.4172 }, "jambi": { lat: -1.61, lng: 103.61 },
+            "bengkulu": { lat: -3.80, lng: 102.26 }, "bandar lampung": { lat: -5.45, lng: 105.26 },
+            "batam": { lat: 1.13, lng: 104.05 }, "tanjung pinang": { lat: 0.91, lng: 104.46 },
+            "aceh": { lat: 5.55, lng: 95.32 }, "lhokseumawe": { lat: 5.18, lng: 97.15 },
+
+            // Jawa (Head Office & Asal)
+            "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 },
+            "cilegon": { lat: -6.01, lng: 106.05 }, "serang": { lat: -6.11, lng: 106.15 },
+            "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
+            "depok": { lat: -6.4025, lng: 106.7942 }, "bandung": { lat: -6.9175, lng: 107.6191 },
+            "semarang": { lat: -6.96, lng: 110.42 }, "solo": { lat: -7.57, lng: 110.82 },
+            "surakarta": { lat: -7.57, lng: 110.82 }, "cilacap": { lat: -7.72, lng: 109.02 },
+            "kebumen": { lat: -7.67, lng: 109.65 }, "pemalang": { lat: -6.89, lng: 109.38 },
+            "yogyakarta": { lat: -7.7956, lng: 110.3695 }, "sleman": { lat: -7.7, lng: 110.35 },
+            "surabaya": { lat: -7.2575, lng: 112.7521 }, "gresik": { lat: -7.15, lng: 112.65 },
+            "malang": { lat: -7.96, lng: 112.63 }, "banyuwangi": { lat: -8.21, lng: 114.36 },
+            "denpasar": { lat: -8.67, lng: 115.21 }, "mataram": { lat: -8.58, lng: 116.11 },
+            "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
+
+            // Sulawesi & Timur (Nikel & Emas)
+            "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 },
+            "kendari": { lat: -3.9973, lng: 122.5151 }, "morowali": { lat: -2.6, lng: 121.9 },
+            "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
+            "sorowako": { lat: -2.5, lng: 121.35 }, "mamuju": { lat: -2.67, lng: 118.88 },
+            "gorontalo": { lat: 0.54, lng: 123.06 }, "timika": { lat: -4.5446, lng: 136.8874 },
+            "jayapura": { lat: -2.5, lng: 140.7 }, "sorong": { lat: -0.87, lng: 131.25 },
+            "ternate": { lat: 0.77, lng: 127.36 }, "weda": { lat: 0.15, lng: 127.9 },
+            "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
         };
 
+        // --- SAFE HELPERS ---
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
-        const getInitials = (n) => { const c = safeStr(n); return !c ? "NN" : c.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase(); };
+        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        const show = (id) => { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); };
+        const hide = (id) => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); };
 
-        // WA Contextual
         const formatWhatsApp = (phone, name, type, details) => {
             let clean = safeStr(phone).replace(/[^0-9]/g, '');
             if (!clean) return "#";
             if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-            let msg = `Halo Bro ${name}, saya dari database Cakrawala.`;
-            if(type === 'hiring') msg = `Halo Bro ${name}, saya tertarik dengan info lowongan "${details}" di Database Cakrawala. Boleh diskusi?`;
-            else if(type === 'gig') msg = `Halo Bro ${name}, saya lihat antum open for project/gig di Database Cakrawala. Boleh diskusi soal skill "${details}"?`;
-            else if(type === 'business') msg = `Halo Bro ${name}, saya tertarik dengan usaha "${details}" di Database Cakrawala. Boleh tanya info produk?`;
+            
+            let msg = `Halo Bro ${name}, saya dari database Cakrawala 2005. Boleh diskusi sebentar?`;
+            if (type === 'hiring') msg = `Halo Bro ${name}, saya tertarik dengan info lowongan "${details}" di Database Cakrawala. Boleh diskusi?`;
+            else if (type === 'gig') msg = `Halo Bro ${name}, saya lihat antum open for project/gig di Database Cakrawala. Boleh diskusi soal skill "${details}"?`;
+            else if (type === 'business') msg = `Halo Bro ${name}, saya tertarik dengan usaha "${details}" di Database Cakrawala. Boleh tanya info produk?`;
+            
             return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
         };
 
+        const getInitials = (name) => {
+            const clean = safeStr(name);
+            if (!clean) return "NN";
+            return clean.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        };
+
         const getCoordinates = (city, province) => {
-            const c = safeStr(city).toLowerCase(), p = safeStr(province).toLowerCase();
-            for (const [k, v] of Object.entries(COORDINATES)) { if (c.includes(k)) return v; }
-            if (p.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
-            if (p.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
-            if (p.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
-            if (p.includes('papua')) return { lat: -4.26, lng: 138.08 };
+            const cleanCity = safeStr(city).toLowerCase();
+            const cleanProv = safeStr(province).toLowerCase();
+            for (const [key, value] of Object.entries(COORDINATES)) { if (cleanCity.includes(key)) return value; }
+            if (cleanProv.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
+            if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
+            if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
+            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
             return null;
         };
 
@@ -330,7 +530,6 @@
                 if(isMentor) badges += `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200 mr-1">MENTOR</span>`;
                 if(!badges) badges = `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold border border-slate-200">ALUMNI</span>`;
 
-                // ACTION BUTTON LOGIC
                 let actionBtn = "";
                 if(isHiring) {
                     const info = safeStr(d.biz_desc) || "Cek Posisi";
@@ -431,20 +630,6 @@
             if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
-        // --- SAFE DOM HELPERS ---
-        const setText = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = val;
-        };
-        const show = (id) => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('hidden');
-        };
-        const hide = (id) => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
-        };
-
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
@@ -460,46 +645,49 @@
             setText('modal-phone', safe(d.hp));
             setText('modal-email', safe(d.email));
 
-            // SKILLS
-            if (d.keahlian || d.sertifikasi) {
+            // LOGIC SHOW/HIDE SECTIONS
+            const show = (id) => document.getElementById(id).classList.remove('hidden');
+            const hide = (id) => document.getElementById(id).classList.add('hidden');
+            
+            // Skills
+            if(d.keahlian || d.sertifikasi) {
                 show('modal-skills-section');
                 setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
             } else hide('modal-skills-section');
 
-            // HIRING
+            // Hiring
             if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
                 show('modal-hiring-box');
                 setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
             } else hide('modal-hiring-box');
 
-            // GIG
+            // Gig
             if(safeStr(d.work_status).toLowerCase().includes('open')) {
                 show('modal-gig-box');
                 setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
             } else hide('modal-gig-box');
 
-            // BUSINESS
+            // Business
             if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
                 show('modal-biz-box');
                 setText('modal-biz-name', safeStr(d.biz_name));
                 setText('modal-biz-desc', safeStr(d.biz_desc));
             } else hide('modal-biz-box');
 
-            // WA BUTTON
+            // Contact Button Logic
             const btn = document.getElementById('modal-wa-link');
-            if (btn) {
-                if(d.hp) {
-                    let type = 'general';
-                    let details = '';
-                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
-                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
-                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
-                    
-                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
+            if(d.hp) {
+                let type = 'general';
+                let details = '';
+                
+                if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
+                else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
+                else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
+                
+                btn.href = formatWhatsApp(d.hp, d.nama, type, details);
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
             }
 
             if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
