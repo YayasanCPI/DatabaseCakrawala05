@@ -109,9 +109,10 @@
             <!-- SMART FILTERS -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
                 <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-800 transition-colors cat-btn" data-cat="all">Semua</button>
-                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pengusaha/Vendor</button>
+                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal (Produk)</button>
                 <button onclick="setCategoryFilter('hiring')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-red-500 hover:text-red-600 transition-colors cat-btn" data-cat="hiring">Sedang Hiring</button>
-                <button onclick="setCategoryFilter('mentor')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-green-500 hover:text-green-600 transition-colors cat-btn" data-cat="mentor">Mentor</button>
+                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek (Gig)</button>
+                <button onclick="setCategoryFilter('mentor')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-green-500 hover:text-green-600 transition-colors cat-btn" data-cat="mentor">Mentor Ahli</button>
             </div>
         </div>
 
@@ -166,7 +167,22 @@
                 </div>
                 
                 <!-- Map Container -->
-                <div id="leaflet-map" class="w-full flex-1 rounded-lg border border-slate-100 z-0"></div>
+                <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
+                    <div id="leaflet-map" class="absolute inset-0 z-0"></div>
+                    
+                    <!-- LEGEND (KETERANGAN PETA) -->
+                    <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-slate-200 z-[500] text-xs space-y-2">
+                        <div class="font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1">Keterangan:</div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span>
+                            <span>Alumni Punya Bisnis</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span>
+                            <span>Alumni Biasa</span>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="mt-2 text-[10px] text-slate-400 text-center italic bg-slate-50 py-1 rounded">
                     *Peta interaktif powered by OpenStreetMap & LeafletJS.
@@ -324,7 +340,8 @@
         const COORDINATES = {
             // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
-            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 }, "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
+            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
+            "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
             "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 },
             "tabalong": { lat: -2.0, lng: 115.4 }, "banjarmasin": { lat: -3.3194, lng: 114.5908 },
             "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
@@ -371,12 +388,24 @@
 
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
         
-        const formatWhatsApp = (phone, name) => {
+        // CONTEXTUAL WHATSAPP LINK
+        const formatWhatsApp = (phone, name, category, bizName) => {
             let clean = safeStr(phone).replace(/[^0-9]/g, '');
             if (!clean) return "#";
             if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-            const text = encodeURIComponent(`Halo Bro ${name}, saya dari database Cakrawala 2005. Boleh diskusi sebentar?`);
-            return `https://wa.me/${clean}?text=${text}`;
+            
+            let message = "";
+            if (category === 'business' && bizName) {
+                message = `Halo Bro ${name}, saya lihat usaha ${bizName} di Database Cakrawala. Boleh tanya info produknya?`;
+            } else if (category === 'hiring') {
+                message = `Halo Bro ${name}, saya lihat info lowongan/proyek di Database Cakrawala. Boleh diskusi?`;
+            } else if (category === 'gig') {
+                message = `Halo Bro ${name}, saya lihat di Database Cakrawala antum open for work/gig. Boleh diskusi proyek?`;
+            } else {
+                message = `Halo Bro ${name}, saya dari database Cakrawala 2005. Boleh diskusi sebentar?`;
+            }
+
+            return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
         };
 
         const getInitials = (name) => {
@@ -424,7 +453,6 @@
             if (cleanProv.includes('sulawesi selatan')) return { lat: -3.66, lng: 119.97 };
             if (cleanProv.includes('sulawesi tenggara')) return { lat: -4.14, lng: 122.17 };
             if (cleanProv.includes('maluku')) return { lat: -3.23, lng: 130.14 };
-            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
             return null;
         };
 
@@ -433,14 +461,15 @@
             const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
             const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
             const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
-            
+            const isGig = safeStr(alumni.work_status).toLowerCase().includes('open'); // Simple check for Gig
+
             if (isOwner) return 'business';
             if (isHiring) return 'hiring';
             if (isMentor) return 'mentor';
+            if (isGig) return 'gig'; // New Category
             
             const job = safeStr(alumni.pekerjaan).toLowerCase();
             if (job.includes('wiraswasta')) return 'business';
-            
             return 'all';
         }
 
@@ -503,9 +532,11 @@
                     safeStr(item.kota).toLowerCase().includes(searchTerm);
                 
                 let matchesCategory = true;
-                if (activeCategory !== 'all') {
-                    matchesCategory = getCategory(item) === activeCategory;
-                }
+                // Allow overlapping categories in filtering
+                if (activeCategory === 'business') matchesCategory = safeStr(item.is_owner).toLowerCase().includes('ya');
+                else if (activeCategory === 'gig') matchesCategory = safeStr(item.work_status).toLowerCase().includes('open') || safeStr(item.hiring_status).toLowerCase().includes('sedang');
+                else if (activeCategory === 'mentor') matchesCategory = safeStr(item.mentor_status).toLowerCase().includes('siap');
+                else if (activeCategory === 'hiring') matchesCategory = safeStr(item.hiring_status).toLowerCase().includes('sedang');
                 
                 return matchesSearch && matchesCategory;
             });
@@ -527,11 +558,13 @@
                 const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
                 const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
                 const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
+                const isGig = safeStr(alumni.work_status).toLowerCase().includes('open');
                 
                 let badges = "";
                 if (isHiring) badges += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-red-200 mr-1">HIRING</span>`;
                 if (isOwner) badges += `<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-yellow-200 mr-1">OWNER</span>`;
                 if (isMentor) badges += `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-green-200 mr-1">MENTOR</span>`;
+                if (isGig) badges += `<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold border border-purple-200 mr-1">GIG/OPEN</span>`;
                 if (!badges) badges = `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold border border-slate-200">ALUMNI</span>`;
 
                 const card = `
@@ -553,7 +586,7 @@
                         </div>
                     </div>
                     <div class="bg-slate-50 p-3 border-t border-slate-100 flex items-center gap-2">
-                        ${alumni.hp ? `<a href="${formatWhatsApp(alumni.hp, name)}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
+                        ${alumni.hp ? `<a href="${formatWhatsApp(alumni.hp, name, activeCategory, alumni.biz_name)}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
                         <button onclick="openModal('${encodeURIComponent(JSON.stringify(alumni))}')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors ml-auto"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                     </div>
                 </div>`;
@@ -572,7 +605,7 @@
             };
             document.getElementById('stats-container').innerHTML = `
                 ${statCard('Total Alumni', stats.total, 'users', 'bg-blue-600')}
-                ${statCard('Pengusaha', stats.business, 'store', 'bg-yellow-600')}
+                ${statCard('Pasar Internal', stats.business, 'store', 'bg-yellow-600')}
                 ${statCard('Sedang Hiring', stats.hiring, 'briefcase', 'bg-red-600')}
                 ${statCard('Mentor Siap', stats.mentor, 'zap', 'bg-green-600')}
             `;
@@ -580,7 +613,7 @@
         }
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
-        // --- MAP FUNCTIONS ---
+        // ... Leaflet Functions (Identical to previous) ...
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
@@ -611,9 +644,17 @@
             let bounds = L.latLngBounds(), hasM = false;
             Object.values(locations).forEach(loc => {
                 if (mapFilterArea !== 'all' && loc.city !== mapFilterArea) return;
+                
+                // Logic: Jika di lokasi ini ada minimal 1 business owner, tandai kuning.
+                const hasBusiness = loc.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
+                
+                // Jika hasBusiness=TRUE, class-nya marker-pin (default kuning). 
+                // Jika FALSE, class-nya marker-pin blue.
+                const cssClass = hasBusiness ? '' : 'blue'; 
+
                 const icon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div class="marker-pin ${mapFilterArea===loc.city?'blue':''}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${loc.count}</span>`,
+                    html: `<div class="marker-pin ${cssClass}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${loc.count}</span>`,
                     iconSize: [30, 42], iconAnchor: [15, 42]
                 });
                 const ppl = loc.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
@@ -624,7 +665,6 @@
             if (hasM) mapInstance.fitBounds(bounds, { padding: [50,50], maxZoom: 10 }); else mapInstance.setView([-2.5, 118], 5);
         }
 
-        // --- MODAL & EVENTS ---
         function openModal(dataStr) {
             const d = JSON.parse(decodeURIComponent(dataStr));
             const safe = (val) => safeStr(val) || "-";
@@ -640,20 +680,14 @@
             document.getElementById('modal-phone').innerText = safe(d.hp);
             document.getElementById('modal-email').innerText = safe(d.email);
             
-            // SKILLS SECTION
             const skillSec = document.getElementById('modal-skills-section');
             if (d.keahlian || d.sertifikasi) {
                 skillSec.classList.remove('hidden');
                 document.getElementById('modal-skills').innerText = `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`;
-            } else {
-                skillSec.classList.add('hidden');
-            }
+            } else skillSec.classList.add('hidden');
 
-            // BUSINESS SECTION (Renamed to Ekosistem Ekonomi Sirkular 2005)
             const bizSec = document.getElementById('modal-business-section');
             const isOwner = safeStr(d.is_owner).toLowerCase().includes('ya');
-            
-            // Generate Tags
             const tagsContainer = document.getElementById('modal-tags');
             tagsContainer.innerHTML = '';
             
@@ -668,36 +702,21 @@
                 bizSec.classList.add('hidden');
             }
 
-            if (safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
-                tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-1 rounded font-medium border border-red-200">Sedang Hiring</span>`);
-            }
-            if (safeStr(d.mentor_status).toLowerCase().includes('siap')) {
-                tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded font-medium border border-green-200">Siap Mentor</span>`);
-            }
+            if (safeStr(d.hiring_status).toLowerCase().includes('sedang')) tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-1 rounded font-medium border border-red-200">Sedang Hiring</span>`);
+            if (safeStr(d.mentor_status).toLowerCase().includes('siap')) tagsContainer.insertAdjacentHTML('beforeend', `<span class="bg-green-100 text-green-800 text-[10px] px-2 py-1 rounded font-medium border border-green-200">Siap Mentor</span>`);
             
-            if(tagsContainer.innerHTML === '') {
-                 tagsContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada data ekosistem</span>';
-            }
+            if(tagsContainer.innerHTML === '') tagsContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Belum ada data ekosistem</span>';
 
-            // LINKEDIN
             const liRow = document.getElementById('modal-linkedin-row');
-            if (d.linkedin) {
-                liRow.classList.remove('hidden');
-                document.getElementById('modal-linkedin-link').href = d.linkedin;
-            } else {
-                liRow.classList.add('hidden');
-            }
+            if (d.linkedin) { liRow.classList.remove('hidden'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else liRow.classList.add('hidden');
 
             const btn = document.getElementById('modal-wa-link');
             if(d.hp) { 
-                btn.href=formatWhatsApp(d.hp, d.nama); 
+                btn.href=formatWhatsApp(d.hp, d.nama, activeCategory, d.biz_name); 
                 btn.classList.remove('hidden'); 
                 btn.classList.add('bg-slate-800','text-white','hover:bg-slate-900'); 
                 btn.innerText='Hubungi via WA'; 
-            } else { 
-                btn.href='#'; 
-                btn.classList.add('hidden');
-            }
+            } else { btn.href='#'; btn.classList.add('hidden'); }
 
             const m = document.getElementById('detail-modal'); m.classList.remove('hidden');
             setTimeout(()=> { m.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95','opacity-0'); },10);
@@ -706,7 +725,7 @@
             const m = document.getElementById('detail-modal'); m.classList.add('opacity-0'); document.getElementById('modal-content').classList.add('scale-95','opacity-0');
             setTimeout(()=>m.classList.add('hidden'), 300);
         }
-
+        
         document.getElementById('search-input').addEventListener('input', () => applyFilters());
         document.getElementById('map-filter').addEventListener('change', (e) => { mapFilterArea = e.target.value; renderLeafletMarkers(); });
         document.getElementById('detail-modal').addEventListener('click', (e) => { if(e.target.id==='detail-modal') closeModal(); });
