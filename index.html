@@ -300,8 +300,8 @@
                 <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">
                     Tutup
                 </button>
-                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center">
-                    Hubungi
+                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">
+                    Hubungi via WA
                 </a>
             </div>
         </div>
@@ -310,7 +310,8 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // --- CONFIG & STATE ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbzm0vWByUFCnYIBhZr4mdKeCBKW5_0tq5ZjrRJrjHd9d6ZTGnwVoYY_VcjHRcvADbDD/exec";
+        // UPDATE URL HERE with the new one you deployed
+        const API_URL = "https://script.google.com/macros/s/AKfycbzcUYrwhO2-LY950URvDmsL9vGpL42052tAqZKAKyGWlWba8c7zDYzKo7KIkcLP8bQX/exec";
         
         let alumniData = [];
         let filteredData = [];
@@ -320,9 +321,9 @@
         let mapInstance = null; 
         let markersLayer = null;
 
-        // --- DATABASE KOORDINAT LENGKAP (UPDATED) ---
+        // --- DATABASE KOORDINAT LENGKAP (RESTORED & EXTENDED) ---
         const COORDINATES = {
-            // Kalimantan
+            // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
             "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
             "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
@@ -333,7 +334,7 @@
             "tarakan": { lat: 3.3, lng: 117.63 }, "malinau": { lat: 3.58, lng: 116.63 },
             "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
 
-            // Sumatera
+            // Sumatera (Tambang & Minyak)
             "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 },
             "muara enim": { lat: -3.65, lng: 103.77 }, "lahat": { lat: -3.80, lng: 103.54 },
             "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
@@ -345,7 +346,7 @@
             "batam": { lat: 1.13, lng: 104.05 }, "tanjung pinang": { lat: 0.91, lng: 104.46 },
             "aceh": { lat: 5.55, lng: 95.32 }, "lhokseumawe": { lat: 5.18, lng: 97.15 },
 
-            // Jawa & Bali & Nusa Tenggara
+            // Jawa (Head Office & Asal)
             "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 },
             "cilegon": { lat: -6.01, lng: 106.05 }, "serang": { lat: -6.11, lng: 106.15 },
             "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
@@ -359,7 +360,7 @@
             "denpasar": { lat: -8.67, lng: 115.21 }, "mataram": { lat: -8.58, lng: 116.11 },
             "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
 
-            // Sulawesi & Timur
+            // Sulawesi & Timur (Nikel & Emas)
             "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 },
             "kendari": { lat: -3.9973, lng: 122.5151 }, "morowali": { lat: -2.6, lng: 121.9 },
             "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
@@ -389,13 +390,12 @@
         const getCoordinates = (city, province) => {
             const cleanCity = safeStr(city).toLowerCase();
             const cleanProv = safeStr(province).toLowerCase();
-            
-            // 1. Cek Kota Spesifik
-            for (const [key, value] of Object.entries(COORDINATES)) {
-                if (cleanCity.includes(key)) return value;
-            }
-            
-            // 2. Fallback Provinsi (Center Points Lengkap se-Indonesia)
+            for (const [key, value] of Object.entries(COORDINATES)) { if (cleanCity.includes(key)) return value; }
+            if (cleanProv.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
+            if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
+            if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
+            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
+            // Fallback Provincies
             if (cleanProv.includes('aceh')) return { lat: 4.69, lng: 96.74 };
             if (cleanProv.includes('sumatera utara')) return { lat: 2.11, lng: 99.54 };
             if (cleanProv.includes('sumatera barat')) return { lat: -0.73, lng: 100.8 };
@@ -407,7 +407,6 @@
             if (cleanProv.includes('bangka')) return { lat: -2.74, lng: 106.44 };
             if (cleanProv.includes('kepulauan riau')) return { lat: 3.94, lng: 108.14 };
             if (cleanProv.includes('jakarta')) return { lat: -6.20, lng: 106.84 };
-            if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
             if (cleanProv.includes('jawa tengah')) return { lat: -7.15, lng: 110.14 }; 
             if (cleanProv.includes('yogyakarta')) return { lat: -7.79, lng: 110.36 };
             if (cleanProv.includes('jawa timur')) return { lat: -7.53, lng: 112.23 };
@@ -427,13 +426,12 @@
             if (cleanProv.includes('sulawesi selatan')) return { lat: -3.66, lng: 119.97 };
             if (cleanProv.includes('sulawesi tenggara')) return { lat: -4.14, lng: 122.17 };
             if (cleanProv.includes('maluku')) return { lat: -3.23, lng: 130.14 };
-            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
-            
             return null;
         };
 
-        // --- SMART CATEGORY LOGIC ---
+        // --- SMART CATEGORY LOGIC (UPDATED WITH REAL DATA) ---
         function getCategory(alumni) {
+            // Priority based on real data form
             const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
             const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
             const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
@@ -442,6 +440,7 @@
             if (isHiring) return 'hiring';
             if (isMentor) return 'mentor';
             
+            // Fallback to job title if no form data
             const job = safeStr(alumni.pekerjaan).toLowerCase();
             if (job.includes('wiraswasta')) return 'business';
             
