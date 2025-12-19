@@ -310,7 +310,6 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // --- CONFIG & STATE ---
-        // UPDATE URL HERE with the new one you deployed
         const API_URL = "https://script.google.com/macros/s/AKfycbzcUYrwhO2-LY950URvDmsL9vGpL42052tAqZKAKyGWlWba8c7zDYzKo7KIkcLP8bQX/exec";
         
         let alumniData = [];
@@ -325,8 +324,7 @@
         const COORDINATES = {
             // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
-            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
-            "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
+            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 }, "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
             "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 },
             "tabalong": { lat: -2.0, lng: 115.4 }, "banjarmasin": { lat: -3.3194, lng: 114.5908 },
             "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
@@ -426,12 +424,12 @@
             if (cleanProv.includes('sulawesi selatan')) return { lat: -3.66, lng: 119.97 };
             if (cleanProv.includes('sulawesi tenggara')) return { lat: -4.14, lng: 122.17 };
             if (cleanProv.includes('maluku')) return { lat: -3.23, lng: 130.14 };
+            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
             return null;
         };
 
-        // --- SMART CATEGORY LOGIC (UPDATED WITH REAL DATA) ---
+        // --- SMART CATEGORY LOGIC ---
         function getCategory(alumni) {
-            // Priority based on real data form
             const isOwner = safeStr(alumni.is_owner).toLowerCase().includes('ya');
             const isHiring = safeStr(alumni.hiring_status).toLowerCase().includes('sedang');
             const isMentor = safeStr(alumni.mentor_status).toLowerCase().includes('siap');
@@ -440,7 +438,6 @@
             if (isHiring) return 'hiring';
             if (isMentor) return 'mentor';
             
-            // Fallback to job title if no form data
             const job = safeStr(alumni.pekerjaan).toLowerCase();
             if (job.includes('wiraswasta')) return 'business';
             
