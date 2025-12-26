@@ -20,45 +20,19 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; }
-        
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #eab308;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #eab308; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Marker Peta Style */
         .custom-div-icon { background: transparent; border: none; }
-        .marker-pin {
-            width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308;
-            position: absolute; transform: rotate(-45deg); left: 50%; top: 50%;
-            margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white;
-            transition: all 0.3s;
-        }
-        .marker-pin::after {
-            content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px;
-            background: #fff; position: absolute; border-radius: 50%;
-        }
+        .marker-pin { width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308; position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white; transition: all 0.3s; }
+        .marker-pin::after { content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px; background: #fff; position: absolute; border-radius: 50%; }
         .marker-pin.blue { background: #2563eb; }
-        .marker-pin.red { background: #dc2626; }
-        .marker-pin.purple { background: #9333ea; }
-        
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .marker-pin.red { background: #dc2626; } /* Merah untuk Hiring */
+        .marker-pin.purple { background: #9333ea; } /* Ungu untuk Freelance */
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
@@ -67,14 +41,12 @@
     <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <!-- LOGO -->
                 <img src="https://i.ibb.co.com/NdhNm6cC/Untitled-design-2.png" alt="Logo Cakrawala" class="h-14 w-auto object-contain">
                 <div class="flex flex-col">
                     <h1 class="font-bold text-xl tracking-tight leading-none">Database</h1>
                     <span class="text-yellow-500 font-bold text-lg tracking-wide leading-none">Cakrawala 2005</span>
                 </div>
             </div>
-            
             <div class="flex items-center space-x-3">
                 <div class="hidden sm:flex text-xs text-right mr-2 items-center">
                     <span id="status-indicator" class="flex items-center justify-end font-bold mr-3 text-slate-500">
@@ -107,31 +79,35 @@
                 
                 <!-- Toggle View Buttons -->
                 <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
-                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow">
-                        <i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar
-                    </button>
-                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50">
-                        <i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta
-                    </button>
+                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow"><i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar</button>
+                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50"><i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta</button>
                 </div>
             </div>
             
             <!-- SMART FILTERS -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
                 <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-800 transition-colors cat-btn" data-cat="all">Semua</button>
-                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal (Produk)</button>
+                <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal</button>
                 <button onclick="setCategoryFilter('hiring')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-red-500 hover:text-red-600 transition-colors cat-btn" data-cat="hiring">Sedang Hiring</button>
-                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek (Gig)</button>
+                <button onclick="setCategoryFilter('gig')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-purple-500 hover:text-purple-600 transition-colors cat-btn" data-cat="gig">Bursa Proyek</button>
                 <button onclick="setCategoryFilter('mentor')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-green-500 hover:text-green-600 transition-colors cat-btn" data-cat="mentor">Mentor Ahli</button>
             </div>
         </div>
 
         <!-- DASHBOARD STATS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stats-container">
-            <!-- Stats di-inject via JS -->
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4 animate-pulse">
-                <div class="w-12 h-12 bg-slate-200 rounded-lg"></div>
-                <div class="flex-1 space-y-2"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-6 bg-slate-200 rounded w-1/2"></div></div>
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Statistik Ekosistem</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="stats-container">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4 animate-pulse">
+                    <div class="w-12 h-12 bg-slate-200 rounded-lg"></div>
+                    <div class="flex-1 space-y-2"><div class="h-4 bg-slate-200 rounded w-3/4"></div><div class="h-6 bg-slate-200 rounded w-1/2"></div></div>
+                </div>
+            </div>
+
+            <!-- JOB STATS SECTION (NEW) -->
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Profil Pekerjaan Alumni</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="job-stats-container">
+                <!-- Job Stats di-inject via JS -->
             </div>
         </div>
 
@@ -246,7 +222,7 @@
                         <p id="modal-company" class="font-medium text-slate-800">-</p>
                     </div>
                     
-                    <!-- NEW: Skills Section -->
+                    <!-- Skills Section -->
                     <div id="modal-skills-section" class="hidden">
                         <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
                             <p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p>
@@ -478,7 +454,9 @@
                         if(n.includes('@') && !e.includes('@')) return {...d, nim:e, email:n};
                         return d;
                     });
-                    applyFilters(); renderStats();
+                    applyFilters(); 
+                    renderStats();
+                    renderJobStats(); // PANGGIL FUNGSI JOB STATS DI SINI
                     document.getElementById('status-text').innerText = "Online";
                     document.getElementById('status-text').className = "text-green-500";
                     document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-green-500 animate-pulse";
@@ -566,6 +544,7 @@
             lucide.createIcons();
         }
 
+        // --- STATS ---
         function renderStats() {
             const s = {
                 total: alumniData.length,
@@ -581,6 +560,43 @@
             `;
             lucide.createIcons();
         }
+
+        // --- NEW: FUNCTION TO RENDER JOB STATS ---
+        function renderJobStats() {
+            const jobCounts = {
+                'Karyawan Swasta': 0,
+                'PNS (ASN)': 0,
+                'Pengusaha': 0,
+                'BUMN': 0,
+                'IRT': 0,
+                'Dosen': 0,
+                'Tidak Bekerja': 0,
+                'Lainnya': 0
+            };
+
+            alumniData.forEach(d => {
+                const job = safeStr(d.pekerjaan).toLowerCase();
+                if (job.includes('swasta')) jobCounts['Karyawan Swasta']++;
+                else if (job.includes('pns') || job.includes('asn') || job.includes('sipil')) jobCounts['PNS (ASN)']++;
+                else if (job.includes('wiraswasta') || job.includes('usaha') || job.includes('entrepreneur')) jobCounts['Pengusaha']++;
+                else if (job.includes('bumn') || job.includes('bumd')) jobCounts['BUMN']++;
+                else if (job.includes('irt') || job.includes('rumah tangga')) jobCounts['IRT']++;
+                else if (job.includes('dosen') || job.includes('akademisi')) jobCounts['Dosen']++;
+                else if (job.includes('tidak') || job === '-' || job === '') jobCounts['Tidak Bekerja']++;
+                else jobCounts['Lainnya']++;
+            });
+
+            let html = '';
+            for (const [key, val] of Object.entries(jobCounts)) {
+                html += `
+                <div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
+                    <span class="text-xs font-bold text-slate-500 uppercase">${key}</span>
+                    <span class="text-lg font-bold text-slate-800">${val}</span>
+                </div>`;
+            }
+            document.getElementById('job-stats-container').innerHTML = html;
+        }
+
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
         function renderLeafletMarkers() {
@@ -600,7 +616,6 @@
                 }
             });
 
-            // Map Filter
             const select = document.getElementById('map-filter');
             while(select.options.length > 2) select.remove(2);
             [...new Set(Object.values(locs).map(l=>l.city))].sort().forEach(c => {
@@ -612,7 +627,6 @@
             Object.values(locs).forEach(l => {
                 if(mapFilterArea!=='all' && l.city!==mapFilterArea) return;
                 
-                // Color Logic
                 const isBiz = l.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
                 const isHiring = l.people.some(p => safeStr(p.hiring_status).toLowerCase().includes('sedang'));
                 const isGig = l.people.some(p => safeStr(p.work_status).toLowerCase().includes('open'));
@@ -620,7 +634,7 @@
                 let css = 'blue';
                 if(isHiring) css = 'red';
                 else if(isGig) css = 'purple';
-                else if(isBiz) css = ''; // yellow default
+                else if(isBiz) css = '';
 
                 const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin ${css}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
                 const list = l.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
@@ -645,49 +659,41 @@
             setText('modal-phone', safe(d.hp));
             setText('modal-email', safe(d.email));
 
-            // LOGIC SHOW/HIDE SECTIONS
-            const show = (id) => document.getElementById(id).classList.remove('hidden');
-            const hide = (id) => document.getElementById(id).classList.add('hidden');
-            
-            // Skills
-            if(d.keahlian || d.sertifikasi) {
+            if (d.keahlian || d.sertifikasi) {
                 show('modal-skills-section');
                 setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
             } else hide('modal-skills-section');
 
-            // Hiring
             if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
                 show('modal-hiring-box');
                 setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
             } else hide('modal-hiring-box');
 
-            // Gig
             if(safeStr(d.work_status).toLowerCase().includes('open')) {
                 show('modal-gig-box');
                 setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
             } else hide('modal-gig-box');
 
-            // Business
             if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
                 show('modal-biz-box');
                 setText('modal-biz-name', safeStr(d.biz_name));
                 setText('modal-biz-desc', safeStr(d.biz_desc));
             } else hide('modal-biz-box');
 
-            // Contact Button Logic
             const btn = document.getElementById('modal-wa-link');
-            if(d.hp) {
-                let type = 'general';
-                let details = '';
-                
-                if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
-                else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
-                else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
-                
-                btn.href = formatWhatsApp(d.hp, d.nama, type, details);
-                btn.classList.remove('hidden');
-            } else {
-                btn.classList.add('hidden');
+            if (btn) {
+                if(d.hp) {
+                    let type = 'general';
+                    let details = '';
+                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
+                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
+                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
+                    
+                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
             }
 
             if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
