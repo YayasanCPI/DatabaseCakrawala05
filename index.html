@@ -30,9 +30,12 @@
         .marker-pin { width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: #eab308; position: absolute; transform: rotate(-45deg); left: 50%; top: 50%; margin: -15px 0 0 -15px; box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white; transition: all 0.3s; }
         .marker-pin::after { content: ''; width: 14px; height: 14px; margin: 6px 0 0 6px; background: #fff; position: absolute; border-radius: 50%; }
         .marker-pin.blue { background: #2563eb; }
-        .marker-pin.red { background: #dc2626; } /* Merah untuk Hiring */
-        .marker-pin.purple { background: #9333ea; } /* Ungu untuk Freelance */
+        .marker-pin.red { background: #dc2626; } 
+        .marker-pin.purple { background: #9333ea; } 
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Market Specific Styles */
+        .market-badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
@@ -67,24 +70,32 @@
         <!-- HERO & SEARCH -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-slate-800 mb-2">Ecosystem Dashboard</h2>
-            <p class="text-slate-500 mb-6">Peta kekuatan, bisnis, dan profesional angkatan 2005.</p>
+            <p class="text-slate-500 mb-6">Peta kekuatan, bisnis, dan marketplace ekonomi sirkular angkatan 2005.</p>
             
             <div class="flex flex-col sm:flex-row gap-4 max-w-4xl">
-                <div class="relative flex-1">
+                <!-- Search Box -->
+                <div class="relative flex-1" id="global-search-container">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i data-lucide="search" class="h-5 w-5 text-slate-400"></i>
                     </div>
                     <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-4 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 shadow-sm transition-all" placeholder="Cari nama, keahlian, atau bisnis..." />
                 </div>
                 
-                <!-- Toggle View Buttons -->
-                <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0">
-                    <button id="btn-list-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow"><i data-lucide="list" class="w-4 h-4 mr-2"></i> Daftar</button>
-                    <button id="btn-map-view" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50"><i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta</button>
+                <!-- View Navigation Tabs -->
+                <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm shrink-0 overflow-x-auto">
+                    <button id="btn-list-view" onclick="switchView('list')" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow whitespace-nowrap">
+                        <i data-lucide="users" class="w-4 h-4 mr-2"></i> Alumni
+                    </button>
+                    <button id="btn-market-view" onclick="switchView('market')" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50 whitespace-nowrap">
+                        <i data-lucide="shopping-bag" class="w-4 h-4 mr-2"></i> Marketplace
+                    </button>
+                    <button id="btn-map-view" onclick="switchView('map')" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50 whitespace-nowrap">
+                        <i data-lucide="map" class="w-4 h-4 mr-2"></i> Peta
+                    </button>
                 </div>
             </div>
             
-            <!-- SMART FILTERS -->
+            <!-- SMART FILTERS (Only for List View) -->
             <div class="flex gap-2 mt-4 overflow-x-auto pb-2 no-scrollbar" id="category-filters">
                 <button onclick="setCategoryFilter('all')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-800 text-white border border-slate-800 transition-colors cat-btn" data-cat="all">Semua</button>
                 <button onclick="setCategoryFilter('business')" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:border-yellow-500 hover:text-yellow-600 transition-colors cat-btn" data-cat="business">Pasar Internal</button>
@@ -94,8 +105,8 @@
             </div>
         </div>
 
-        <!-- DASHBOARD STATS -->
-        <div class="mb-8">
+        <!-- DASHBOARD STATS (Visible on List & Map) -->
+        <div class="mb-8" id="dashboard-stats-section">
             <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Statistik Ekosistem</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="stats-container">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4 animate-pulse">
@@ -104,18 +115,14 @@
                 </div>
             </div>
 
-            <!-- JOB STATS SECTION (NEW) -->
+            <!-- JOB STATS SECTION -->
             <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Profil Pekerjaan Alumni</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="job-stats-container">
-                <!-- Job Stats di-inject via JS -->
-            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="job-stats-container"></div>
         </div>
 
-        <!-- CONTENT AREA: LIST VIEW -->
-        <div id="list-view-container" class="block">
-            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Cards di-inject via JS -->
-            </div>
+        <!-- === VIEW 1: ALUMNI LIST === -->
+        <div id="list-view-container" class="block view-section">
+            <div id="alumni-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             <div id="loading-state" class="text-center py-20">
                 <div class="loader mx-auto mb-4"></div>
                 <p class="text-slate-500">Memuat data dari Google Sheet...</p>
@@ -126,61 +133,58 @@
             </div>
         </div>
 
-        <!-- CONTENT AREA: MAP VIEW -->
-        <div id="map-view-container" class="hidden">
+        <!-- === VIEW 2: MAP === -->
+        <div id="map-view-container" class="hidden view-section">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden relative flex flex-col h-[600px]">
-                
-                <!-- Map Header & Controls -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                     <div>
                         <p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p>
                         <p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p>
                     </div>
-
-                    <!-- Filter Dropdown Lokasi -->
                     <div class="relative z-[1000]"> 
-                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                            <i data-lucide="filter" class="h-4 w-4 text-slate-400"></i>
-                        </div>
                         <select id="map-filter" class="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm appearance-none cursor-pointer hover:bg-slate-50 transition-colors min-w-[200px]">
                             <option value="all">Semua Lokasi</option>
-                            <option disabled>──────────</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                            <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400 rotate-90"></i>
-                        </div>
                     </div>
                 </div>
-                
-                <!-- Map Container -->
                 <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
                     <div id="leaflet-map" class="absolute inset-0 z-0"></div>
-                    
-                    <!-- LEGEND (KETERANGAN PETA) -->
                     <div class="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg border border-slate-200 z-[500] text-xs space-y-2">
                         <div class="font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1">Keterangan:</div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#dc2626] border border-white shadow mr-2"></span>
-                            <span>Hiring</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#9333ea] border border-white shadow mr-2"></span>
-                            <span>Bursa Proyek</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span>
-                            <span>Bisnis</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span>
-                            <span>Alumni Biasa</span>
-                        </div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#dc2626] border border-white shadow mr-2"></span><span>Hiring</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#9333ea] border border-white shadow mr-2"></span><span>Bursa Proyek</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#eab308] border border-white shadow mr-2"></span><span>Bisnis</span></div>
+                        <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-[#2563eb] border border-white shadow mr-2"></span><span>Alumni Biasa</span></div>
                     </div>
                 </div>
-                
-                <div class="mt-2 text-[10px] text-slate-400 text-center italic bg-slate-50 py-1 rounded">
-                    *Peta interaktif powered by OpenStreetMap & LeafletJS.
+            </div>
+        </div>
+
+        <!-- === VIEW 3: MARKETPLACE (NEW) === -->
+        <div id="market-view-container" class="hidden view-section">
+            <!-- Market Hero -->
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white mb-8 shadow-lg relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-bold mb-2">Marketplace Ekonomi Sirkular</h2>
+                    <p class="text-slate-300 text-sm max-w-xl mb-4">Wadah transaksi eksklusif alumni. Jual beli aset, tawarkan jasa profesional, atau cari partner proyek.</p>
+                    <button onclick="openListingModal()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-5 py-2 rounded-lg font-bold text-sm transition-colors shadow-lg flex items-center">
+                        <i data-lucide="plus-circle" class="w-4 h-4 mr-2"></i> Pasang Iklan Baru
+                    </button>
                 </div>
+                <div class="absolute right-0 top-0 h-full w-1/3 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            </div>
+
+            <!-- Market Filters -->
+            <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="filterMarket('all')" class="market-filter-btn active px-4 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white shadow-sm transition-all" data-type="all">Semua</button>
+                <button onclick="filterMarket('goods')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="goods">🛒 Jual Beli Barang</button>
+                <button onclick="filterMarket('services')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="services">🛠️ Jasa & Proyek</button>
+                <button onclick="filterMarket('jobs')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="jobs">💼 Lowongan Kerja</button>
+            </div>
+
+            <!-- Market Grid -->
+            <div id="market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Market items injected via JS -->
             </div>
         </div>
 
@@ -193,137 +197,104 @@
         </div>
     </footer>
 
-    <!-- MODAL DETAIL -->
+    <!-- MODAL DETAIL ALUMNI -->
     <div id="detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="modal-content">
             <!-- Modal Header -->
             <div class="bg-slate-800 p-6 flex justify-between items-start shrink-0">
                 <div class="flex items-center space-x-4">
-                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">
-                        NN
-                    </div>
+                    <div id="modal-initials" class="w-16 h-16 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center font-bold text-2xl shadow-lg border-2 border-white">NN</div>
                     <div>
                         <h2 id="modal-name" class="text-xl font-bold text-white">Nama Alumni</h2>
                         <p id="modal-job" class="text-yellow-400 text-sm font-medium">Pekerjaan</p>
                     </div>
                 </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-
-            <!-- Modal Body -->
+            <!-- Body -->
             <div class="p-6 space-y-6 overflow-y-auto">
-                
-                <!-- 1. Informasi Profesional Dasar -->
                 <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                        <p class="text-xs text-slate-500">Perusahaan / Instansi</p>
-                        <p id="modal-company" class="font-medium text-slate-800">-</p>
-                    </div>
-                    
-                    <!-- Skills Section -->
-                    <div id="modal-skills-section" class="hidden">
-                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                            <p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p>
-                            <p id="modal-skills" class="text-sm text-slate-800">-</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
-                            <p class="text-xs text-slate-500">Bidang</p>
-                            <p id="modal-field" class="font-medium text-slate-800">-</p>
-                        </div>
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1">
-                            <p class="text-xs text-slate-500">NIM</p>
-                            <p id="modal-nim" class="font-medium text-slate-800">-</p>
-                        </div>
-                    </div>
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><p class="text-xs text-slate-500">Perusahaan / Instansi</p><p id="modal-company" class="font-medium text-slate-800">-</p></div>
+                    <div id="modal-skills-section" class="hidden"><div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs text-blue-600 font-bold uppercase mb-1">Keahlian & Sertifikasi</p><p id="modal-skills" class="text-sm text-slate-800">-</p></div></div>
+                    <div class="flex gap-4"><div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">Bidang</p><p id="modal-field" class="font-medium text-slate-800">-</p></div><div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex-1"><p class="text-xs text-slate-500">NIM</p><p id="modal-nim" class="font-medium text-slate-800">-</p></div></div>
                 </div>
-
-                <!-- 2. SPECIAL INFO SECTIONS -->
-                
-                <!-- Hiring -->
-                <div id="modal-hiring-box" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 flex items-center">
-                        <i data-lucide="briefcase" class="w-3 h-3 mr-2"></i> Info Lowongan
-                    </h3>
-                    <p class="text-sm text-slate-800 font-medium" id="modal-hiring-detail">-</p>
-                    <p class="text-[10px] text-slate-500 mt-1 italic">Klik tombol Hubungi untuk melamar.</p>
-                </div>
-
-                <!-- Gig -->
-                <div id="modal-gig-box" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center">
-                        <i data-lucide="zap" class="w-3 h-3 mr-2"></i> Bursa Proyek
-                    </h3>
-                    <p class="text-sm text-slate-800 font-medium" id="modal-gig-detail">-</p>
-                    <p class="text-[10px] text-slate-500 mt-1 italic">Menawarkan keahlian/jasa di atas.</p>
-                </div>
-
-                <!-- Business -->
-                <div id="modal-biz-box" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1 flex items-center">
-                        <i data-lucide="store" class="w-3 h-3 mr-2"></i> Pasar Internal
-                    </h3>
-                    <p class="font-bold text-slate-900 text-sm" id="modal-biz-name">-</p>
-                    <p class="text-sm text-slate-700 mt-1" id="modal-biz-desc">-</p>
-                </div>
-
-                <!-- 3. Kontak & Lokasi -->
+                <div id="modal-hiring-box" class="hidden bg-red-50 border border-red-200 rounded-lg p-3"><h3 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="briefcase" class="w-3 h-3 mr-2"></i> Info Lowongan</h3><p class="text-sm text-slate-800 font-medium" id="modal-hiring-detail">-</p></div>
+                <div id="modal-gig-box" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3"><h3 class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="zap" class="w-3 h-3 mr-2"></i> Bursa Proyek</h3><p class="text-sm text-slate-800 font-medium" id="modal-gig-detail">-</p></div>
+                <div id="modal-biz-box" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3"><h3 class="text-xs font-bold text-yellow-700 uppercase tracking-wider mb-1 flex items-center"><i data-lucide="store" class="w-3 h-3 mr-2"></i> Pasar Internal</h3><p class="font-bold text-slate-900 text-sm" id="modal-biz-name">-</p><p class="text-sm text-slate-700 mt-1" id="modal-biz-desc">-</p></div>
                 <div class="space-y-3 pt-2 border-t border-slate-100">
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Domisili</p>
-                            <p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p>
-                            <p id="modal-city" class="text-xs text-slate-500">-</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3">
-                            <i data-lucide="phone" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Nomor HP</p>
-                            <p id="modal-phone" class="text-sm font-medium text-slate-800">-</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-3">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-500">Email</p>
-                            <p id="modal-email" class="text-sm font-medium text-slate-800">-</p>
-                        </div>
-                    </div>
-                    
-                    <!-- LinkedIn Link -->
-                    <div id="modal-linkedin-row" class="flex items-center p-2 hover:bg-slate-50 rounded-lg hidden transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center mr-3">
-                            <i data-lucide="linkedin" class="w-4 h-4"></i>
-                        </div>
-                        <a id="modal-linkedin-link" href="#" target="_blank" class="text-sm font-medium text-blue-700 hover:underline">
-                            Lihat Profil LinkedIn
-                        </a>
-                    </div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3"><i data-lucide="map-pin" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">Domisili</p><p id="modal-domicile" class="text-sm font-medium text-slate-800">-</p></div></div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors"><div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3"><i data-lucide="phone" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">Nomor HP</p><p id="modal-phone" class="text-sm font-medium text-slate-800">-</p></div></div>
+                    <div class="flex items-center p-2 hover:bg-slate-50 rounded-lg transition-colors"><div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-3"><i data-lucide="mail" class="w-4 h-4"></i></div><div><p class="text-xs text-slate-500">Email</p><p id="modal-email" class="text-sm font-medium text-slate-800">-</p></div></div>
                 </div>
             </div>
-
-            <!-- Modal Footer -->
+            <!-- Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
-                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">
-                    Tutup
-                </button>
-                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">
-                    Hubungi via WA
-                </a>
+                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">Tutup</button>
+                <a id="modal-wa-link" href="#" target="_blank" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-900 flex items-center hidden">Hubungi via WA</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POST LISTING BARU (ADDITION) -->
+    <div id="listing-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="listing-modal-content">
+            <!-- Header -->
+            <div class="bg-slate-800 p-6 flex justify-between items-center shrink-0">
+                <h2 class="text-xl font-bold text-white flex items-center"><i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Pasang Iklan</h2>
+                <button onclick="closeListingModal()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <!-- Form -->
+            <div class="p-6 overflow-y-auto space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kategori</label>
+                    <select id="input-category" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                        <option value="goods">Jual Beli Barang</option>
+                        <option value="services">Jasa & Proyek</option>
+                        <option value="jobs">Lowongan Kerja</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Judul Iklan</label>
+                    <input type="text" id="input-title" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-yellow-500" placeholder="Contoh: Jual Laptop, Dicari Geologist, Jasa IPPKH">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Harga / Gaji</label>
+                        <input type="text" id="input-price" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="Rp ... / Negotiable">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kota</label>
+                        <input type="text" id="input-city" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="Lokasi">
+                    </div>
+                </div>
+                <!-- IMAGE INPUT FIELD -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Foto Produk / Ilustrasi</label>
+                    <input type="file" id="input-image" accept="image/*" class="w-full border border-slate-300 rounded-lg p-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100">
+                    <p class="text-[10px] text-slate-400 mt-1">*Upload foto untuk preview. Nanti kirim foto asli ke Admin via WA.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Deskripsi Singkat</label>
+                    <textarea id="input-desc" rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="Jelaskan detail barang, jasa, atau kualifikasi pekerjaan..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Pemasang</label>
+                        <input type="text" id="input-name" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="Nama Anda">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">No. WhatsApp</label>
+                        <input type="text" id="input-phone" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="0812...">
+                    </div>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-700">
+                    <p><strong>Info:</strong> Data akan dikirim via WhatsApp ke Admin untuk diverifikasi sebelum masuk database permanen.</p>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                <button onclick="closeListingModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">Batal</button>
+                <button onclick="submitListing()" class="px-6 py-2 bg-yellow-500 text-slate-900 rounded-lg text-sm font-bold hover:bg-yellow-400 shadow-md">Kirim & Pasang</button>
             </div>
         </div>
     </div>
@@ -332,7 +303,8 @@
     <script>
         // --- CONFIG & STATE ---
         const API_URL = "https://script.google.com/macros/s/AKfycbxvpxp2jcNJlrR_YIoGCSWERq7jAuYjBhsTmnEnMdL05JaBJEIjLJhEvBGGhYKPNSY_/exec";
-        
+        const ADMIN_WA = "628123456789"; // Ganti dengan nomor WA Admin/Sekretaris
+
         let alumniData = [];
         let filteredData = [];
         let viewMode = 'list';
@@ -341,7 +313,36 @@
         let mapInstance = null; 
         let markersLayer = null;
 
-        // --- DATABASE KOORDINAT LENGKAP (RESTORED & EXTENDED) ---
+        // --- MARKETPLACE DATA ---
+        let marketData = [
+            {
+                id: 1, type: 'goods', title: 'Drone DJI Mavic 3 Cine (Second)', price: 'Rp 28.000.000',
+                seller: 'Budi Santoso', city: 'Balikpapan', image: 'https://placehold.co/400x300/1e293b/FFF?text=Drone+Survey',
+                desc: 'Bekas proyek pemetaan 6 bulan. Kondisi 95%, baterai 3 set. Cocok untuk survey tambang.', phone: '628129876543'
+            },
+            {
+                id: 2, type: 'services', title: 'Jasa Penyusunan Dokumen RKAB', price: 'Negotiable',
+                seller: 'Citra Lestari', city: 'Jakarta', image: 'https://placehold.co/400x300/eab308/1e293b?text=Jasa+RKAB',
+                desc: 'Tim berpengalaman 10+ tahun. Spesialisasi komoditas batubara & nikel. Garansi revisi sampai approved.', phone: '628134567890'
+            },
+            {
+                id: 3, type: 'jobs', title: 'Senior Mine Plan Engineer', price: 'Rp 25-35 Juta',
+                seller: 'PT Pamapersada (via Budi)', city: 'Kaltim', image: 'https://placehold.co/400x300/dc2626/FFF?text=Hiring+Engineer',
+                desc: 'Dicari alumni berpengalaman min 5 tahun. Software: Minescape/Surpac. Penempatan site KPC.', phone: '628129876543'
+            },
+            {
+                id: 4, type: 'goods', title: 'Toyota Hilux 4x4 2019', price: 'Rp 280.000.000',
+                seller: 'Adi Nugroho', city: 'Samarinda', image: 'https://placehold.co/400x300/475569/FFF?text=Hilux+4x4',
+                desc: 'Ex kendaraan operasional ringan. Mesin sehat, kaki-kaki baru peremajaan. Plat KT.', phone: '628123456789'
+            },
+            {
+                id: 5, type: 'services', title: 'Training POP & POM Sertifikasi BNSP', price: 'Rp 3.500.000',
+                seller: 'Diklat Tambang ID', city: 'Online', image: 'https://placehold.co/400x300/2563eb/FFF?text=Training+POP',
+                desc: 'Batch ke-5 dibuka bulan depan. Diskon khusus untuk member Cakrawala 2005.', phone: '628123456789'
+            }
+        ];
+
+        // --- DATABASE KOORDINAT LENGKAP ---
         const COORDINATES = {
             // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
@@ -391,22 +392,15 @@
             "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
         };
 
-        // --- SAFE HELPERS ---
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
         const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
         const show = (id) => { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); };
         const hide = (id) => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); };
 
-        const formatWhatsApp = (phone, name, type, details) => {
+        const formatWhatsApp = (phone, msg) => {
             let clean = safeStr(phone).replace(/[^0-9]/g, '');
             if (!clean) return "#";
             if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-            
-            let msg = `Halo Bro ${name}, saya dari database Cakrawala 2005. Boleh diskusi sebentar?`;
-            if (type === 'hiring') msg = `Halo Bro ${name}, saya tertarik dengan info lowongan "${details}" di Database Cakrawala. Boleh diskusi?`;
-            else if (type === 'gig') msg = `Halo Bro ${name}, saya lihat antum open for project/gig di Database Cakrawala. Boleh diskusi soal skill "${details}"?`;
-            else if (type === 'business') msg = `Halo Bro ${name}, saya tertarik dengan usaha "${details}" di Database Cakrawala. Boleh tanya info produk?`;
-            
             return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
         };
 
@@ -424,21 +418,8 @@
             if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
             if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
             if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
-            return null;
+            return null; // Don't return center Indo, return null to skip
         };
-
-        // Categorize
-        function getCategory(d) {
-            const hiring = safeStr(d.hiring_status).toLowerCase().includes('sedang');
-            const gig = safeStr(d.work_status).toLowerCase().includes('open');
-            const owner = safeStr(d.is_owner).toLowerCase().includes('ya');
-            const mentor = safeStr(d.mentor_status).toLowerCase().includes('siap');
-            if(hiring) return 'hiring';
-            if(gig) return 'gig';
-            if(owner) return 'business';
-            if(mentor) return 'mentor';
-            return 'all';
-        }
 
         async function fetchData() {
             const refreshIcon = document.getElementById('refresh-icon');
@@ -449,22 +430,190 @@
                 const res = await fetch(API_URL);
                 const json = await res.json();
                 if(json.status === 'success') {
-                    alumniData = (Array.isArray(json.data) ? json.data : []).map(d => {
-                        const n = safeStr(d.nim), e = safeStr(d.email);
-                        if(n.includes('@') && !e.includes('@')) return {...d, nim:e, email:n};
-                        return d;
-                    });
+                    alumniData = (Array.isArray(json.data) ? json.data : []);
                     applyFilters(); 
                     renderStats();
-                    renderJobStats(); // PANGGIL FUNGSI JOB STATS DI SINI
+                    renderJobStats();
                     document.getElementById('status-text').innerText = "Online";
                     document.getElementById('status-text').className = "text-green-500";
                     document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-green-500 animate-pulse";
                     document.getElementById('loading-state').classList.add('hidden');
                 }
-            } catch(e) { console.error(e); } finally { refreshIcon.classList.remove('animate-spin'); }
+            } catch(e) { 
+                console.error(e); 
+                // Dummy Data Fallback
+                alumniData = [
+                    {nama: "Adi Nugroho", perusahaan: "PT Kaltim Prima Coal", pekerjaan: "Senior Mining Engineer", kota: "Sangatta", provinsi: "Kaltim", hiring_status: "Tidak", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Siap", hp: "08123456789"},
+                    {nama: "Budi Santoso", perusahaan: "PT Pamapersada Nusantara", pekerjaan: "Project Manager", kota: "Balikpapan", provinsi: "Kaltim", hiring_status: "Sedang", biz_desc: "Mencari Mining Foreman", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Tidak", hp: "08129876543"},
+                    {nama: "Citra Lestari", perusahaan: "Self Employed", pekerjaan: "Konsultan Lingkungan", kota: "Jakarta", provinsi: "DKI Jakarta", hiring_status: "Tidak", work_status: "Open", keahlian: "AMDAL & Reklamasi", is_owner: "Ya", biz_name: "EnviroSolusi", biz_desc: "Jasa Konsultansi Lingkungan", mentor_status: "Siap", hp: "08134567890"}
+                ];
+                applyFilters();
+                renderStats();
+                renderJobStats();
+                document.getElementById('status-text').innerText = "Offline Mode";
+                document.getElementById('status-text').className = "text-orange-500";
+                document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-orange-500";
+                document.getElementById('loading-state').classList.add('hidden');
+            } finally { refreshIcon.classList.remove('animate-spin'); }
         }
 
+        // --- VIEW SWITCHER LOGIC ---
+        function switchView(mode) {
+            viewMode = mode;
+            ['list', 'map', 'market'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}-view`);
+                if(m === mode) {
+                    btn.className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow whitespace-nowrap";
+                } else {
+                    btn.className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50 whitespace-nowrap";
+                }
+            });
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            
+            if(mode === 'list') {
+                show('list-view-container'); show('category-filters'); show('dashboard-stats-section'); show('global-search-container');
+            } else if (mode === 'map') {
+                show('map-view-container'); hide('category-filters'); show('dashboard-stats-section'); show('global-search-container');
+                setTimeout(() => { 
+                    if(!mapInstance) renderLeafletMarkers(); 
+                    else { mapInstance.invalidateSize(); renderLeafletMarkers(); }
+                }, 100);
+            } else if (mode === 'market') {
+                show('market-view-container'); hide('category-filters'); hide('dashboard-stats-section'); hide('global-search-container'); 
+                renderMarketplace();
+            }
+        }
+
+        // --- MARKETPLACE LOGIC ---
+        let activeMarketFilter = 'all';
+
+        function filterMarket(type) {
+            activeMarketFilter = type;
+            document.querySelectorAll('.market-filter-btn').forEach(btn => {
+                if(btn.dataset.type === type) {
+                    btn.className = "market-filter-btn active px-4 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white shadow-sm transition-all";
+                } else {
+                    btn.className = "market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all";
+                }
+            });
+            renderMarketplace();
+        }
+
+        function renderMarketplace() {
+            const grid = document.getElementById('market-grid');
+            grid.innerHTML = '';
+            
+            const filtered = activeMarketFilter === 'all' ? marketData : marketData.filter(i => i.type === activeMarketFilter);
+
+            filtered.forEach(item => {
+                let badgeColor = 'bg-blue-600';
+                let typeLabel = 'Item';
+                let actionLabel = 'Beli / Nego';
+                
+                if(item.type === 'goods') { badgeColor = 'bg-green-600'; typeLabel = 'Jual Barang'; }
+                else if(item.type === 'services') { badgeColor = 'bg-purple-600'; typeLabel = 'Jasa/Proyek'; actionLabel = 'Diskusi Project'; }
+                else if(item.type === 'jobs') { badgeColor = 'bg-red-600'; typeLabel = 'Lowongan'; actionLabel = 'Lamar Sekarang'; }
+
+                const waMsg = `Halo Bro ${item.seller}, saya lihat postingan "${item.title}" di Marketplace Cakrawala. Masih available?`;
+                const waLink = formatWhatsApp(item.phone, waMsg);
+
+                const card = `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col group relative">
+                    <div class="relative h-48 bg-slate-100 overflow-hidden">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="market-badge ${badgeColor}">${typeLabel}</div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2">${item.title}</h3>
+                        </div>
+                        <p class="text-yellow-600 font-bold mb-3">${item.price}</p>
+                        <p class="text-slate-500 text-sm mb-4 line-clamp-3 flex-1">${item.desc}</p>
+                        
+                        <div class="border-t border-slate-100 pt-3 mt-auto">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center text-xs text-slate-500">
+                                    <i data-lucide="user" class="w-3 h-3 mr-1"></i> ${item.seller}
+                                </div>
+                                <div class="flex items-center text-xs text-slate-500">
+                                    <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${item.city}
+                                </div>
+                            </div>
+                            <a href="${waLink}" target="_blank" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 rounded-lg flex items-center justify-center transition-colors">
+                                <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> ${actionLabel}
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+                grid.insertAdjacentHTML('beforeend', card);
+            });
+            lucide.createIcons();
+        }
+
+        // --- NEW LISTING LOGIC ---
+        function openListingModal() {
+            const m = document.getElementById('listing-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('listing-modal-content').classList.remove('scale-95', 'opacity-0'); }, 10);
+        }
+
+        function closeListingModal() {
+            const m = document.getElementById('listing-modal');
+            m.classList.add('opacity-0'); document.getElementById('listing-modal-content').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function submitListing() {
+            // Variables
+            const category = document.getElementById('input-category').value;
+            const title = document.getElementById('input-title').value;
+            const price = document.getElementById('input-price').value;
+            const city = document.getElementById('input-city').value;
+            const desc = document.getElementById('input-desc').value;
+            const name = document.getElementById('input-name').value;
+            const phone = document.getElementById('input-phone').value;
+            const fileInput = document.getElementById('input-image');
+            const file = fileInput.files[0];
+
+            if(!title || !price || !name || !phone) { alert("Mohon lengkapi judul, harga, nama, dan no HP."); return; }
+
+            const processSubmit = (imgUrl) => {
+                 const newItem = {
+                    id: Date.now(), type: category, title: title, price: price, seller: name, city: city || 'Online',
+                    image: imgUrl, desc: desc, phone: phone
+                };
+                marketData.unshift(newItem);
+                renderMarketplace();
+
+                // Pesan WA disesuaikan
+                const waText = `*Request Posting Marketplace Cakrawala*\n\nKategori: ${category}\nJudul: ${title}\nHarga: ${price}\nKota: ${city}\nDeskripsi: ${desc}\n\nNama: ${name}\nKontak: ${phone}\n\n*Foto/Gambar:* (Akan dikirimkan terlampir di chat ini)\n\nMohon diapprove admin.`;
+                const waLink = formatWhatsApp(ADMIN_WA, waText);
+
+                closeListingModal();
+                // Reset form fields
+                document.getElementById('input-title').value = '';
+                document.getElementById('input-desc').value = '';
+                document.getElementById('input-image').value = '';
+
+                const confirmMsg = "Iklan Anda telah ditambahkan ke preview.\n\nKlik OK untuk membuka WhatsApp Admin. \n\nJANGAN LUPA: Kirimkan foto produk Anda secara manual di chat WhatsApp tersebut.";
+                if(confirm(confirmMsg)) { window.open(waLink, '_blank'); }
+            };
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    processSubmit(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Default image based on category
+                let defaultImg = 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image';
+                processSubmit(defaultImg);
+            }
+        }
+
+        // --- EXISTING FILTER & LIST LOGIC ---
         function setCategoryFilter(cat) {
             activeCategory = cat;
             document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -535,7 +684,7 @@
                         ${actionBtn}
                     </div>
                     <div class="bg-slate-50 p-3 border-t border-slate-100 flex items-center gap-2">
-                        ${d.hp ? `<a href="${formatWhatsApp(d.hp, d.nama, 'general', '')}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
+                        ${d.hp ? `<a href="${formatWhatsApp(d.hp, `Halo Bro ${d.nama}, saya dari database Cakrawala. Boleh diskusi?`)}" target="_blank" class="flex-1 flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Chat WA</span></a>` : ``}
                         <button onclick="openModal('${encodeURIComponent(JSON.stringify(d))}')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors ml-auto"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                     </div>
                 </div>`;
@@ -544,7 +693,7 @@
             lucide.createIcons();
         }
 
-        // --- STATS ---
+        // --- STATS & MAP (REPAIRED) ---
         function renderStats() {
             const s = {
                 total: alumniData.length,
@@ -561,44 +710,28 @@
             lucide.createIcons();
         }
 
-        // --- NEW: FUNCTION TO RENDER JOB STATS ---
         function renderJobStats() {
-            const jobCounts = {
-                'Karyawan Swasta': 0,
-                'PNS (ASN)': 0,
-                'Pengusaha': 0,
-                'BUMN': 0,
-                'IRT': 0,
-                'Dosen': 0,
-                'Tidak Bekerja': 0,
-                'Lainnya': 0
-            };
-
+            const jobCounts = {};
             alumniData.forEach(d => {
                 const job = safeStr(d.pekerjaan).toLowerCase();
-                if (job.includes('swasta')) jobCounts['Karyawan Swasta']++;
-                else if (job.includes('pns') || job.includes('asn') || job.includes('sipil')) jobCounts['PNS (ASN)']++;
-                else if (job.includes('wiraswasta') || job.includes('usaha') || job.includes('entrepreneur')) jobCounts['Pengusaha']++;
-                else if (job.includes('bumn') || job.includes('bumd')) jobCounts['BUMN']++;
-                else if (job.includes('irt') || job.includes('rumah tangga')) jobCounts['IRT']++;
-                else if (job.includes('dosen') || job.includes('akademisi')) jobCounts['Dosen']++;
-                else if (job.includes('tidak') || job === '-' || job === '') jobCounts['Tidak Bekerja']++;
-                else jobCounts['Lainnya']++;
+                let cat = 'Lainnya';
+                if (job.includes('swasta')) cat = 'Karyawan Swasta';
+                else if (job.includes('pns') || job.includes('asn')) cat = 'PNS (ASN)';
+                else if (job.includes('usaha') || job.includes('entrepreneur')) cat = 'Pengusaha';
+                else if (job.includes('bumn')) cat = 'BUMN';
+                else if (job.includes('tidak') || job === '-' || job === '') cat = 'Tidak Bekerja';
+                jobCounts[cat] = (jobCounts[cat] || 0) + 1;
             });
-
             let html = '';
             for (const [key, val] of Object.entries(jobCounts)) {
-                html += `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
-                    <span class="text-xs font-bold text-slate-500 uppercase">${key}</span>
-                    <span class="text-lg font-bold text-slate-800">${val}</span>
-                </div>`;
+                html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm"><span class="text-xs font-bold text-slate-500 uppercase">${key}</span><span class="text-lg font-bold text-slate-800">${val}</span></div>`;
             }
             document.getElementById('job-stats-container').innerHTML = html;
         }
 
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
+        // FIXED RENDER LEAFLET MARKERS
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
@@ -644,60 +777,23 @@
             if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
+        // Modal Logic
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
-            
-            setText('modal-initials', getInitials(d.nama));
-            setText('modal-name', safe(d.nama));
-            setText('modal-job', safe(d.pekerjaan));
-            setText('modal-company', safe(d.perusahaan));
-            setText('modal-field', safe(d.bidang));
-            setText('modal-nim', safe(d.nim));
-            setText('modal-domicile', safe(d.domisili));
-            setText('modal-city', `${safe(d.kota)}, ${safe(d.provinsi)}`);
-            setText('modal-phone', safe(d.hp));
-            setText('modal-email', safe(d.email));
+            setText('modal-initials', getInitials(d.nama)); setText('modal-name', safe(d.nama));
+            setText('modal-job', safe(d.pekerjaan)); setText('modal-company', safe(d.perusahaan));
+            setText('modal-field', safe(d.bidang)); setText('modal-nim', safe(d.nim));
+            setText('modal-domicile', safe(d.domisili)); setText('modal-phone', safe(d.hp)); setText('modal-email', safe(d.email));
 
-            if (d.keahlian || d.sertifikasi) {
-                show('modal-skills-section');
-                setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
-            } else hide('modal-skills-section');
-
-            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
-                show('modal-hiring-box');
-                setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
-            } else hide('modal-hiring-box');
-
-            if(safeStr(d.work_status).toLowerCase().includes('open')) {
-                show('modal-gig-box');
-                setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
-            } else hide('modal-gig-box');
-
-            if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
-                show('modal-biz-box');
-                setText('modal-biz-name', safeStr(d.biz_name));
-                setText('modal-biz-desc', safeStr(d.biz_desc));
-            } else hide('modal-biz-box');
+            if (d.keahlian) { show('modal-skills-section'); setText('modal-skills', d.keahlian); } else hide('modal-skills-section');
+            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { show('modal-hiring-box'); setText('modal-hiring-detail', d.biz_desc); } else hide('modal-hiring-box');
+            if(safeStr(d.work_status).toLowerCase().includes('open')) { show('modal-gig-box'); setText('modal-gig-detail', d.keahlian); } else hide('modal-gig-box');
+            if(safeStr(d.is_owner).toLowerCase().includes('ya')) { show('modal-biz-box'); setText('modal-biz-name', d.biz_name); setText('modal-biz-desc', d.biz_desc); } else hide('modal-biz-box');
 
             const btn = document.getElementById('modal-wa-link');
-            if (btn) {
-                if(d.hp) {
-                    let type = 'general';
-                    let details = '';
-                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
-                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
-                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
-                    
-                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
-            }
-
-            if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
-
+            if(d.hp) { btn.href = formatWhatsApp(d.hp, `Halo Bro ${d.nama}, diskusi dong.`); btn.classList.remove('hidden'); } else btn.classList.add('hidden');
+            
             const m = document.getElementById('detail-modal'); m.classList.remove('hidden');
             setTimeout(()=> { m.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95','opacity-0'); },10);
         }
@@ -709,19 +805,6 @@
         document.getElementById('search-input').addEventListener('input', () => applyFilters());
         document.getElementById('map-filter').addEventListener('change', (e) => { mapFilterArea = e.target.value; renderLeafletMarkers(); });
         document.getElementById('detail-modal').addEventListener('click', (e) => { if(e.target.id==='detail-modal') closeModal(); });
-        document.getElementById('btn-map-view').addEventListener('click', () => {
-            viewMode='map'; document.getElementById('list-view-container').classList.add('hidden'); document.getElementById('map-view-container').classList.remove('hidden');
-            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
-            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
-            document.getElementById('category-filters').classList.add('hidden'); 
-            setTimeout(() => { renderLeafletMarkers(); mapInstance.invalidateSize(); }, 100);
-        });
-        document.getElementById('btn-list-view').addEventListener('click', () => {
-            viewMode='list'; document.getElementById('list-view-container').classList.remove('hidden'); document.getElementById('map-view-container').classList.add('hidden');
-            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
-            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
-            document.getElementById('category-filters').classList.remove('hidden'); 
-        });
 
         fetchData(); lucide.createIcons();
     </script>
