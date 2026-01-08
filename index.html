@@ -186,6 +186,9 @@
             <!-- Market Grid -->
             <div id="market-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Market items injected via JS -->
+                <div id="market-loading" class="col-span-full text-center py-10 text-slate-500">
+                    <div class="loader mx-auto mb-2"></div> Memuat Database Iklan...
+                </div>
             </div>
         </div>
 
@@ -325,13 +328,13 @@
                     </div>
                 </div>
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-700">
-                    <p><strong>Info:</strong> Data akan dikirim via WhatsApp ke Admin untuk diverifikasi sebelum masuk database permanen.</p>
+                    <p><strong>Info:</strong> Data akan tersimpan otomatis di Database.</p>
                 </div>
             </div>
             <!-- Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
                 <button onclick="closeListingModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 mr-2">Batal</button>
-                <button onclick="submitListing()" class="px-6 py-2 bg-yellow-500 text-slate-900 rounded-lg text-sm font-bold hover:bg-yellow-400 shadow-md">Kirim & Pasang</button>
+                <button onclick="submitListing()" id="btn-submit-listing" class="px-6 py-2 bg-yellow-500 text-slate-900 rounded-lg text-sm font-bold hover:bg-yellow-400 shadow-md">Kirim & Pasang</button>
             </div>
         </div>
     </div>
@@ -339,49 +342,27 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // --- CONFIG & STATE ---
-        const API_URL = "https://script.google.com/macros/s/AKfycbxvpxp2jcNJlrR_YIoGCSWERq7jAuYjBhsTmnEnMdL05JaBJEIjLJhEvBGGhYKPNSY_/exec";
-        const ADMIN_WA = "628123456789"; // Ganti dengan nomor WA Admin/Sekretaris
+        const API_URL = "https://script.google.com/macros/s/AKfycbxzbKpMmFkpnUjshUufc0y6UlDv3u4yLFDHRXGHvDAPKab4IKLkMVKJgnG0F8_WFk2P/exec"; 
+        const ADMIN_WA = "628123456789"; 
+        const IMGBB_API_KEY = "d2bc6a4ae014ca59acf3ed7ee32a9173"; 
 
+        // SAFE STRING FUNCTION (Must be defined first)
+        const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
+
+        // State Variables
         let alumniData = [];
+        let marketData = [];
         let filteredData = [];
         let viewMode = 'list';
         let mapFilterArea = 'all';
         let activeCategory = 'all';
+        let activeMarketFilter = 'all'; 
         let mapInstance = null; 
         let markersLayer = null;
-
-        // --- MARKETPLACE DATA ---
-        let marketData = [
-            {
-                id: 1, type: 'goods', title: 'Drone DJI Mavic 3 Cine (Second)', price: 'Rp 28.000.000',
-                seller: 'Budi Santoso', city: 'Balikpapan', image: 'https://placehold.co/400x300/1e293b/FFF?text=Drone+Survey',
-                desc: 'Bekas proyek pemetaan 6 bulan. Kondisi 95%, baterai 3 set. Cocok untuk survey tambang.', phone: '628129876543'
-            },
-            {
-                id: 2, type: 'services', title: 'Jasa Penyusunan Dokumen RKAB', price: 'Negotiable',
-                seller: 'Citra Lestari', city: 'Jakarta', image: 'https://placehold.co/400x300/eab308/1e293b?text=Jasa+RKAB',
-                desc: 'Tim berpengalaman 10+ tahun. Spesialisasi komoditas batubara & nikel. Garansi revisi sampai approved.', phone: '628134567890'
-            },
-            {
-                id: 3, type: 'jobs', title: 'Senior Mine Plan Engineer', price: 'Rp 25-35 Juta',
-                seller: 'PT Pamapersada (via Budi)', city: 'Kaltim', image: 'https://placehold.co/400x300/dc2626/FFF?text=Hiring+Engineer',
-                desc: 'Dicari alumni berpengalaman min 5 tahun. Software: Minescape/Surpac. Penempatan site KPC.', phone: '628129876543'
-            },
-            {
-                id: 4, type: 'goods', title: 'Toyota Hilux 4x4 2019', price: 'Rp 280.000.000',
-                seller: 'Adi Nugroho', city: 'Samarinda', image: 'https://placehold.co/400x300/475569/FFF?text=Hilux+4x4',
-                desc: 'Ex kendaraan operasional ringan. Mesin sehat, kaki-kaki baru peremajaan. Plat KT.', phone: '628123456789'
-            },
-            {
-                id: 5, type: 'services', title: 'Training POP & POM Sertifikasi BNSP', price: 'Rp 3.500.000',
-                seller: 'Diklat Tambang ID', city: 'Online', image: 'https://placehold.co/400x300/2563eb/FFF?text=Training+POP',
-                desc: 'Batch ke-5 dibuka bulan depan. Diskon khusus untuk member Cakrawala 2005.', phone: '628123456789'
-            }
-        ];
+        let mapMode = 'kota';
 
         // --- DATABASE KOORDINAT LENGKAP ---
         const COORDINATES = {
-            // Kalimantan (Tambang & Kota Utama)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
             "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
             "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
@@ -393,8 +374,6 @@
             "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
             "tenggarong": { lat: -0.42, lng: 116.98 }, "penajam": { lat: -1.30, lng: 116.73 },
             "tanah bumbu": { lat: -3.45, lng: 115.70 }, "kotabaru": { lat: -3.20, lng: 116.20 },
-
-            // Sumatera (Tambang & Kota Utama)
             "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 },
             "muara enim": { lat: -3.65, lng: 103.77 }, "lahat": { lat: -3.80, lng: 103.54 },
             "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
@@ -406,8 +385,6 @@
             "batam": { lat: 1.13, lng: 104.05 }, "tanjung pinang": { lat: 0.91, lng: 104.46 },
             "aceh": { lat: 5.55, lng: 95.32 }, "lhokseumawe": { lat: 5.18, lng: 97.15 },
             "sawahlunto": { lat: -0.68, lng: 100.78 }, "sungai liat": { lat: -1.85, lng: 106.11 },
-
-            // Jawa (Head Office & Asal)
             "jakarta": { lat: -6.2088, lng: 106.8456 }, "jakarta selatan": { lat: -6.26, lng: 106.81 },
             "jakarta pusat": { lat: -6.18, lng: 106.83 }, "jakarta barat": { lat: -6.16, lng: 106.75 },
             "jakarta timur": { lat: -6.22, lng: 106.90 }, "jakarta utara": { lat: -6.13, lng: 106.88 },
@@ -425,8 +402,6 @@
             "sidoarjo": { lat: -7.45, lng: 112.71 }, "mojokerto": { lat: -7.47, lng: 112.43 },
             "denpasar": { lat: -8.67, lng: 115.21 }, "mataram": { lat: -8.58, lng: 116.11 },
             "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
-
-            // Sulawesi & Timur (Nikel & Emas)
             "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 },
             "kendari": { lat: -3.9973, lng: 122.5151 }, "morowali": { lat: -2.6, lng: 121.9 },
             "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
@@ -438,7 +413,6 @@
             "konawe": { lat: -3.85, lng: 122.05 }, "luwu timur": { lat: -2.60, lng: 121.15 }
         };
 
-        const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
         const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
         const show = (id) => { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); };
         const hide = (id) => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); };
@@ -456,20 +430,18 @@
             return clean.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         };
 
-        const getCoordinates = (city) => {
-            const cleanCity = safeStr(city).toLowerCase().trim();
+        const getCoordinates = (locationName) => {
+            let clean = safeStr(locationName).toLowerCase();
+            // SMART GEOCODING: Remove administrative words
+            clean = clean.replace(/kota\s+/g, '').replace(/kabupaten\s+/g, '').replace(/kab\.\s+/g, '').replace(/adm\.\s+/g, '').trim();
             
-            // Cek Kota Spesifik
-            if (cleanCity) {
-                // Exact match
-                if (COORDINATES[cleanCity]) return COORDINATES[cleanCity];
-                
-                // Partial match (e.g. "kota balikpapan" -> "balikpapan")
-                for (const [key, value] of Object.entries(COORDINATES)) {
-                    if (cleanCity.includes(key) || key.includes(cleanCity)) return value;
-                }
+            if (!clean) return null;
+
+            if (COORDINATES[clean]) return COORDINATES[clean];
+
+            for (const [key, value] of Object.entries(COORDINATES)) {
+                if (clean.includes(key)) return value;
             }
-            
             return null;
         };
 
@@ -492,24 +464,50 @@
                     document.getElementById('loading-state').classList.add('hidden');
                 }
             } catch(e) { 
-                console.error(e); 
-                // Dummy Data Fallback
+                console.error("Error fetching alumni:", e);
+                // Fallback dummy
                 alumniData = [
-                    {nama: "Adi Nugroho", perusahaan: "PT Kaltim Prima Coal", pekerjaan: "Senior Mining Engineer", kota: "Sangatta", provinsi: "Kaltim", hiring_status: "Tidak", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Siap", hp: "08123456789"},
-                    {nama: "Budi Santoso", perusahaan: "PT Pamapersada Nusantara", pekerjaan: "Project Manager", kota: "Balikpapan", provinsi: "Kaltim", hiring_status: "Sedang", biz_desc: "Mencari Mining Foreman", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Tidak", hp: "08129876543"},
-                    {nama: "Citra Lestari", perusahaan: "Self Employed", pekerjaan: "Konsultan Lingkungan", kota: "Jakarta", provinsi: "DKI Jakarta", hiring_status: "Tidak", work_status: "Open", keahlian: "AMDAL & Reklamasi", is_owner: "Ya", biz_name: "EnviroSolusi", biz_desc: "Jasa Konsultansi Lingkungan", mentor_status: "Siap", hp: "08134567890"}
+                    {nama: "Adi Nugroho", perusahaan: "PT Kaltim Prima Coal", pekerjaan: "Senior Mining Engineer", kota: "Sangatta", provinsi: "Kaltim", domisili: "Balikpapan", hiring_status: "Tidak", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Siap", hp: "08123456789"},
+                    {nama: "Budi Santoso", perusahaan: "PT Pamapersada Nusantara", pekerjaan: "Project Manager", kota: "Balikpapan", provinsi: "Kaltim", domisili: "Jakarta Selatan", hiring_status: "Sedang", biz_desc: "Mencari Mining Foreman", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Tidak", hp: "08129876543"},
+                    {nama: "Citra Lestari", perusahaan: "Self Employed", pekerjaan: "Konsultan Lingkungan", kota: "Jakarta", provinsi: "DKI Jakarta", domisili: "Bogor", hiring_status: "Tidak", work_status: "Open", keahlian: "AMDAL & Reklamasi", is_owner: "Ya", biz_name: "EnviroSolusi", biz_desc: "Jasa Konsultansi Lingkungan", mentor_status: "Siap", hp: "08134567890"}
                 ];
                 applyFilters();
                 renderStats();
                 renderJobStats();
+                
                 document.getElementById('status-text').innerText = "Offline Mode";
                 document.getElementById('status-text').className = "text-orange-500";
-                document.getElementById('status-dot').className = "w-2 h-2 rounded-full mr-1 bg-orange-500";
                 document.getElementById('loading-state').classList.add('hidden');
-            } finally { refreshIcon.classList.remove('animate-spin'); }
+            } 
+
+            // Fetch Market
+            fetchMarketData();
+            
+            refreshIcon.classList.remove('animate-spin');
         }
 
-        // --- VIEW SWITCHER LOGIC ---
+        async function fetchMarketData() {
+            try {
+                const res = await fetch(API_URL + "?action=get_market");
+                const json = await res.json();
+                
+                if (json.status === 'success' && Array.isArray(json.data)) {
+                    marketData = json.data.map(item => ({
+                        ...item,
+                        image: item.image || 'https://placehold.co/400x300/e2e8f0/1e293b?text=Foto+Tersedia+via+WA'
+                    }));
+                } else {
+                    console.log("Marketplace empty.");
+                    marketData = [];
+                }
+                renderMarketplace();
+            } catch (e) {
+                console.error("Error fetching market:", e);
+                renderMarketplace();
+            }
+        }
+
+        // --- VIEW SWITCHER ---
         function switchView(mode) {
             viewMode = mode;
             ['list', 'map', 'market'].forEach(m => {
@@ -527,7 +525,10 @@
                 show('list-view-container'); show('category-filters'); show('dashboard-stats-section'); show('global-search-container');
             } else if (mode === 'map') {
                 show('map-view-container'); hide('category-filters'); show('dashboard-stats-section'); show('global-search-container');
-                setTimeout(() => { if(!mapInstance) renderLeafletMarkers(); else mapInstance.invalidateSize(); }, 100);
+                setTimeout(() => { 
+                    if(!mapInstance) renderLeafletMarkers(); 
+                    else { mapInstance.invalidateSize(); renderLeafletMarkers(); }
+                }, 100);
             } else if (mode === 'market') {
                 show('market-view-container'); hide('category-filters'); hide('dashboard-stats-section'); hide('global-search-container'); 
                 renderMarketplace();
@@ -535,8 +536,6 @@
         }
 
         // --- MARKETPLACE LOGIC ---
-        let activeMarketFilter = 'all';
-
         function filterMarket(type) {
             activeMarketFilter = type;
             document.querySelectorAll('.market-filter-btn').forEach(btn => {
@@ -553,6 +552,11 @@
             const grid = document.getElementById('market-grid');
             grid.innerHTML = '';
             
+            if (marketData.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Belum ada iklan. Jadilah yang pertama posting!</div>`;
+                return;
+            }
+
             const filtered = activeMarketFilter === 'all' ? marketData : marketData.filter(i => i.type === activeMarketFilter);
 
             filtered.forEach(item => {
@@ -560,18 +564,21 @@
                 let typeLabel = 'Item';
                 let actionLabel = 'Beli / Nego';
                 
-                if(item.type === 'goods') { badgeColor = 'bg-green-600'; typeLabel = 'Jual Barang'; }
-                else if(item.type === 'services') { badgeColor = 'bg-purple-600'; typeLabel = 'Jasa/Proyek'; actionLabel = 'Diskusi Project'; }
-                else if(item.type === 'jobs') { badgeColor = 'bg-red-600'; typeLabel = 'Lowongan'; actionLabel = 'Lamar Sekarang'; }
+                // DEFENSIVE CHECK for 'type'
+                const rawType = item.type;
+                const type = (rawType && typeof rawType === 'string') ? rawType.toLowerCase() : '';
+                
+                if(type.includes('goods') || type.includes('jual')) { badgeColor = 'bg-green-600'; typeLabel = 'Jual Barang'; }
+                else if(type.includes('services') || type.includes('jasa')) { badgeColor = 'bg-purple-600'; typeLabel = 'Jasa/Proyek'; actionLabel = 'Diskusi Project'; }
+                else if(type.includes('jobs') || type.includes('kerja')) { badgeColor = 'bg-red-600'; typeLabel = 'Lowongan'; actionLabel = 'Lamar Sekarang'; }
 
                 const waMsg = `Halo Bro ${item.seller}, saya lihat postingan "${item.title}" di Marketplace Cakrawala. Masih available?`;
                 const waLink = formatWhatsApp(item.phone, waMsg);
 
-                // Tambahkan click event pada gambar untuk membuka detail
                 const card = `
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col group relative">
                     <div class="relative h-48 bg-slate-100 overflow-hidden cursor-pointer card-zoom" onclick="openMarketDetail('${encodeURIComponent(JSON.stringify(item))}')">
-                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500" onerror="this.src='https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image'">
                         <div class="market-badge ${badgeColor}">${typeLabel}</div>
                         <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
                             <span class="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur"><i data-lucide="zoom-in" class="w-3 h-3 inline mr-1"></i> Lihat Detail</span>
@@ -602,9 +609,8 @@
                                 </button>
                             </div>
                             
-                            <!-- TOMBOL HAPUS -->
-                            <button onclick="deleteListing(${item.id})" class="w-full mt-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100 rounded flex items-center justify-center py-2 transition-colors">
-                                <i data-lucide="trash-2" class="w-3 h-3 mr-1"></i> Hapus Iklan Ini (Sudah Laku)
+                            <button onclick="reportSold('${encodeURIComponent(JSON.stringify(item))}')" class="w-full mt-2 text-xs text-slate-400 hover:text-red-500 flex items-center justify-center py-1 transition-colors">
+                                <i data-lucide="flag" class="w-3 h-3 mr-1"></i> Lapor Terjual / Hapus
                             </button>
                         </div>
                     </div>
@@ -615,13 +621,11 @@
         }
 
         // --- NEW DETAIL & SHARE LOGIC ---
-        
         function openMarketDetail(json) {
             const item = JSON.parse(decodeURIComponent(json));
             const m = document.getElementById('market-detail-modal');
             const c = document.getElementById('market-detail-content');
             
-            // Set Content
             document.getElementById('md-image').src = item.image;
             document.getElementById('md-title').innerText = item.title;
             document.getElementById('md-price').innerText = item.price;
@@ -630,22 +634,24 @@
             document.getElementById('md-city').innerText = item.city;
             document.getElementById('md-phone').innerText = item.phone;
             
-            // Badge color
             const badge = document.getElementById('md-badge');
             let color = 'bg-blue-600';
             let label = 'Item';
-            if(item.type==='goods') { color='bg-green-600'; label='Jual Barang'; }
-            else if(item.type==='services') { color='bg-purple-600'; label='Jasa/Proyek'; }
-            else if(item.type==='jobs') { color='bg-red-600'; label='Lowongan'; }
+            
+            // DEFENSIVE CHECK
+            const rawType = item.type;
+            const type = (rawType && typeof rawType === 'string') ? rawType.toLowerCase() : '';
+
+            if(type.includes('goods') || type.includes('jual')) { color='bg-green-600'; label='Jual Barang'; }
+            else if(type.includes('services') || type.includes('jasa')) { color='bg-purple-600'; label='Jasa/Proyek'; }
+            else if(type.includes('jobs') || type.includes('kerja')) { color='bg-red-600'; label='Lowongan'; }
             badge.className = `absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm ${color}`;
             badge.innerText = label;
 
-            // Buttons
             const waMsg = `Halo Bro ${item.seller}, saya lihat detail "${item.title}" di Marketplace Cakrawala. Minat nih.`;
             document.getElementById('md-wa-btn').href = formatWhatsApp(item.phone, waMsg);
             document.getElementById('md-wag-btn').setAttribute('onclick', `shareToWa('${encodeURIComponent(JSON.stringify(item))}')`);
 
-            // Show
             m.classList.remove('hidden');
             setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95', 'opacity-0'); }, 10);
         }
@@ -660,8 +666,6 @@
         function shareToWa(json) {
             const item = JSON.parse(decodeURIComponent(json));
             const appLink = "https://yayasancpi.github.io/DatabaseCakrawala05/";
-            
-            // Format text agar rapi dan menarik
             const text = `*MARKETPLACE CAKRAWALA 2005* 📢\n\n` +
                          `*${item.title}*\n` +
                          `💰 *Harga:* ${item.price}\n` +
@@ -670,15 +674,12 @@
                          `*Deskripsi:* \n${item.desc}\n\n` +
                          `📞 *Hubungi:* wa.me/${item.phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}\n\n` +
                          `----------------------------------\n` +
-                         `🔗 *Cek detail & listing lainnya di aplikasi database:*\n` +
-                         `${appLink}`;
-            
-            // Universal Link untuk Share (Mobile & Desktop)
+                         `🔗 *Cek detail:* ${appLink}`;
             const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
         }
 
-        // --- NEW LISTING LOGIC ---
+        // --- NEW LISTING LOGIC WITH IMGBB ---
         function openListingModal() {
             const m = document.getElementById('listing-modal');
             m.classList.remove('hidden');
@@ -691,7 +692,11 @@
             setTimeout(() => m.classList.add('hidden'), 300);
         }
 
-        function submitListing() {
+        async function submitListing() {
+            const btn = document.getElementById('btn-submit-listing');
+            const originalText = btn.innerText;
+            
+            // Get Values
             const category = document.getElementById('input-category').value;
             const title = document.getElementById('input-title').value;
             const price = document.getElementById('input-price').value;
@@ -704,44 +709,91 @@
 
             if(!title || !price || !name || !phone) { alert("Mohon lengkapi judul, harga, nama, dan no HP."); return; }
 
-            const processSubmit = (imgUrl) => {
-                 const newItem = {
-                    id: Date.now(), type: category, title: title, price: price, seller: name, city: city || 'Online',
-                    image: imgUrl, desc: desc, phone: phone
+            // UI Loading
+            btn.disabled = true;
+            btn.innerText = "Mengirim...";
+
+            // 1. UPLOAD IMAGE TO IMGBB (If Exists)
+            let imageUrl = '';
+            if (file && IMGBB_API_KEY !== 'GANTI_DENGAN_API_KEY_ANDA_DISINI') {
+                const imgData = new FormData();
+                imgData.append('image', file);
+                
+                try {
+                    btn.innerText = "Upload Foto...";
+                    const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                        method: 'POST',
+                        body: imgData
+                    });
+                    const imgJson = await imgRes.json();
+                    if (imgJson.success) {
+                        imageUrl = imgJson.data.url;
+                    } else {
+                        console.error('ImgBB Error:', imgJson);
+                        alert("Gagal upload foto. Iklan akan diposting tanpa foto.");
+                    }
+                } catch (e) {
+                    console.error('Upload Failed', e);
+                    alert("Gagal upload foto (Cek koneksi). Lanjut posting tanpa foto?");
+                }
+            } else if (file) {
+                alert("Peringatan: API Key ImgBB belum dipasang di kode. Foto tidak bisa diupload.");
+            }
+
+            // 2. SEND DATA TO GOOGLE SHEET
+            btn.innerText = "Simpan Data...";
+            
+            const formData = new FormData();
+            formData.append('category', category);
+            formData.append('title', title);
+            formData.append('price', price);
+            formData.append('city', city);
+            formData.append('desc', desc);
+            formData.append('name', name);
+            formData.append('phone', phone);
+            formData.append('image', imageUrl); // Send URL
+            
+            fetch(API_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' 
+            }).then(() => {
+                // Success Handling (Blind)
+                
+                // Add to local list immediately
+                const newItem = {
+                    type: category, title: title, price: price, seller: name, city: city || 'Online',
+                    desc: desc, phone: phone,
+                    image: imageUrl || 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image'
                 };
-                marketData.unshift(newItem); // Add to top
+                marketData.unshift(newItem);
                 renderMarketplace();
 
-                // Close input modal
                 closeListingModal();
-                
-                // Clear inputs
                 document.getElementById('input-title').value = '';
                 document.getElementById('input-desc').value = '';
                 document.getElementById('input-image').value = '';
+                
+                btn.disabled = false;
+                btn.innerText = originalText;
 
-                // Show Success & Share Option (Via Detail Popup)
-                setTimeout(() => {
-                    openMarketDetail(encodeURIComponent(JSON.stringify(newItem)));
-                    alert("Iklan berhasil dibuat!\n\nSilakan klik tombol 'Share ke WA' di bawah ini untuk membagikan ke kontak atau grup manapun.");
-                }, 300);
-            };
+                alert("Iklan berhasil diposting!");
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) { processSubmit(e.target.result); };
-                reader.readAsDataURL(file);
-            } else {
-                let defaultImg = 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image';
-                processSubmit(defaultImg);
-            }
+            }).catch(err => {
+                console.error(err);
+                alert("Gagal mengirim data ke database. Silakan coba lagi.");
+                btn.disabled = false;
+                btn.innerText = originalText;
+            });
         }
 
-        // --- DIRECT DELETE LOGIC ---
-        function deleteListing(id) {
-            if(confirm("Apakah barang ini sudah laku atau ingin dihapus?\n\nPERINGATAN: Iklan akan langsung hilang dari daftar.")) {
-                marketData = marketData.filter(item => item.id !== id);
-                renderMarketplace();
+        function reportSold(json) {
+            const item = JSON.parse(decodeURIComponent(json));
+            const waText = `*Lapor Update Status Marketplace*\n\nJudul: ${item.title}\nPenjual: ${item.seller}\n\nStatus: Sudah Laku / Mohon Dihapus.\n\nMohon diproses admin.`;
+            const link = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waText)}`;
+            
+            if(confirm("Lapor ke Admin untuk menghapus item ini dari database Google Sheet?")) {
+                window.open(link, '_blank');
             }
         }
 
@@ -825,7 +877,7 @@
             lucide.createIcons();
         }
 
-        // --- STATS & MAP (REPAIRED) ---
+        // --- STATS ---
         function renderStats() {
             const s = {
                 total: alumniData.length,
@@ -843,27 +895,57 @@
         }
 
         function renderJobStats() {
-            const jobCounts = {};
+            const jobCounts = {
+                'Karyawan Swasta': 0,
+                'PNS (ASN)': 0,
+                'Pengusaha': 0,
+                'BUMN': 0,
+                'IRT': 0,
+                'Dosen': 0,
+                'Tidak Bekerja': 0,
+                'Lainnya': 0
+            };
+
             alumniData.forEach(d => {
                 const job = safeStr(d.pekerjaan).toLowerCase();
-                let cat = 'Lainnya';
-                if (job.includes('swasta')) cat = 'Karyawan Swasta';
-                else if (job.includes('pns') || job.includes('asn')) cat = 'PNS (ASN)';
-                else if (job.includes('usaha') || job.includes('entrepreneur')) cat = 'Pengusaha';
-                else if (job.includes('bumn')) cat = 'BUMN';
-                else if (job.includes('tidak') || job === '-' || job === '') cat = 'Tidak Bekerja';
-                jobCounts[cat] = (jobCounts[cat] || 0) + 1;
+                if (job.includes('swasta')) jobCounts['Karyawan Swasta']++;
+                else if (job.includes('pns') || job.includes('asn') || job.includes('sipil')) jobCounts['PNS (ASN)']++;
+                else if (job.includes('wiraswasta') || job.includes('usaha') || job.includes('entrepreneur')) jobCounts['Pengusaha']++;
+                else if (job.includes('bumn') || job.includes('bumd')) jobCounts['BUMN']++;
+                else if (job.includes('irt') || job.includes('rumah tangga')) jobCounts['IRT']++;
+                else if (job.includes('dosen') || job.includes('akademisi')) jobCounts['Dosen']++;
+                else if (job.includes('tidak') || job === '-' || job === '') jobCounts['Tidak Bekerja']++;
+                else jobCounts['Lainnya']++;
             });
+
             let html = '';
             for (const [key, val] of Object.entries(jobCounts)) {
-                html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm"><span class="text-xs font-bold text-slate-500 uppercase">${key}</span><span class="text-lg font-bold text-slate-800">${val}</span></div>`;
+                html += `
+                <div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
+                    <span class="text-xs font-bold text-slate-500 uppercase">${key}</span>
+                    <span class="text-lg font-bold text-slate-800">${val}</span>
+                </div>`;
             }
             document.getElementById('job-stats-container').innerHTML = html;
         }
 
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
-        // FIXED RENDER LEAFLET MARKERS
+        // --- MAP LOGIC (REVISED) ---
+        function setMapMode(mode) {
+            mapMode = mode;
+            // Update Button Styles
+            document.getElementById('btn-mode-kota').className = mode === 'kota' 
+                ? "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all" 
+                : "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
+            
+            document.getElementById('btn-mode-domisili').className = mode === 'domisili' 
+                ? "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all" 
+                : "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
+
+            renderLeafletMarkers();
+        }
+
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
@@ -872,25 +954,44 @@
             } else markersLayer.clearLayers();
 
             const locs = {};
+            
             filteredData.forEach(p => {
-                const c = getCoordinates(p.kota); // Changed from (p.kota, p.provinsi)
+                // Pilih field berdasarkan mode: 'kota' atau 'domisili'
+                let locString = mapMode === 'kota' ? p.kota : p.domisili;
+                
+                // Jika kosong, skip
+                if (!locString || locString === "-") return;
+
+                const c = getCoordinates(locString);
+                
                 if (c) {
                     const key = `${c.lat},${c.lng}`;
-                    if (!locs[key]) locs[key] = { ...c, count: 0, people: [], city: p.kota||"Lokasi" };
-                    locs[key].count++; locs[key].people.push(p);
+                    // Gunakan nama lokasi yang sudah dibersihkan untuk label
+                    let label = safeStr(locString).replace(/kota\s+|kab\.\s+/i, '');
+                    
+                    if (!locs[key]) locs[key] = { ...c, count: 0, people: [], name: label };
+                    locs[key].count++; 
+                    locs[key].people.push(p);
                 }
             });
 
+            // Update Dropdown Filter Map
             const select = document.getElementById('map-filter');
-            while(select.options.length > 2) select.remove(2);
-            [...new Set(Object.values(locs).map(l=>l.city))].sort().forEach(c => {
+            while(select.options.length > 1) select.remove(1);
+            
+            // Get unique location names for dropdown
+            const uniqueLocs = [...new Set(Object.values(locs).map(l => l.name))].sort();
+            uniqueLocs.forEach(c => {
                 const opt = document.createElement('option'); opt.value = c; opt.text = c; select.add(opt);
             });
             select.value = mapFilterArea;
 
-            const bounds = L.latLngBounds(); let hasM = false;
+            const bounds = L.latLngBounds(); 
+            let hasM = false;
+
             Object.values(locs).forEach(l => {
-                if(mapFilterArea!=='all' && l.city!==mapFilterArea) return;
+                // Filter by dropdown selection
+                if(mapFilterArea !== 'all' && l.name !== mapFilterArea) return;
                 
                 const isBiz = l.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
                 const isHiring = l.people.some(p => safeStr(p.hiring_status).toLowerCase().includes('sedang'));
@@ -899,16 +1000,30 @@
                 let css = 'blue';
                 if(isHiring) css = 'red';
                 else if(isGig) css = 'purple';
-                else if(isBiz) css = '';
+                else if(isBiz) css = 'yellow'; // Fix css name mapping if using specific class
 
-                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin ${css}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
+                // Custom color fix
+                let pinColor = '#2563eb'; // blue
+                if(isHiring) pinColor = '#dc2626';
+                else if(isGig) pinColor = '#9333ea';
+                else if(isBiz) pinColor = '#eab308';
+
+                const iconHtml = `<div class="marker-pin" style="background:${pinColor}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`;
+                const icon = L.divIcon({ className: 'custom-div-icon', html: iconHtml, iconSize: [30,42], iconAnchor: [15,42] });
+                
                 const list = l.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
-                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.city}</b><ul style="padding-left:15px">${list}</ul>`).addTo(markersLayer);
+                const more = l.people.length > 5 ? `<li>... +${l.people.length-5} lainnya</li>` : '';
+                
+                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.name} (${l.count})</b><ul style="padding-left:15px; margin-top:5px; font-size:11px;">${list}${more}</ul>`).addTo(markersLayer);
+                
                 bounds.extend([l.lat, l.lng]); hasM = true;
             });
-            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
+
+            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); 
+            else mapInstance.setView([-2.5, 118], 5);
         }
 
+        // Modal Open Logic (Same as before)
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
