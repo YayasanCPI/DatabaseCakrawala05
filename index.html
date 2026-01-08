@@ -543,6 +543,11 @@
                             <a href="${waLink}" target="_blank" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 rounded-lg flex items-center justify-center transition-colors">
                                 <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> ${actionLabel}
                             </a>
+                            
+                            <!-- TOMBOL HAPUS (MODIFIED) -->
+                            <button onclick="deleteListing(${item.id})" class="w-full mt-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100 rounded flex items-center justify-center py-2 transition-colors">
+                                <i data-lucide="trash-2" class="w-3 h-3 mr-1"></i> Hapus Iklan Ini (Sudah Laku)
+                            </button>
                         </div>
                     </div>
                 </div>`;
@@ -610,6 +615,15 @@
                 // Default image based on category
                 let defaultImg = 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image';
                 processSubmit(defaultImg);
+            }
+        }
+
+        // --- DIRECT DELETE LOGIC (NEW) ---
+        function deleteListing(id) {
+            if(confirm("Apakah barang ini sudah laku atau ingin dihapus?\n\nPERINGATAN: Iklan akan langsung hilang dari daftar.")) {
+                marketData = marketData.filter(item => item.id !== id);
+                renderMarketplace();
+                // Opsional: Kirim notifikasi 'silent' ke admin bahwa item ID sekian dihapus (jika ada backend)
             }
         }
 
@@ -777,23 +791,60 @@
             if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
-        // Modal Logic
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
-            setText('modal-initials', getInitials(d.nama)); setText('modal-name', safe(d.nama));
-            setText('modal-job', safe(d.pekerjaan)); setText('modal-company', safe(d.perusahaan));
-            setText('modal-field', safe(d.bidang)); setText('modal-nim', safe(d.nim));
-            setText('modal-domicile', safe(d.domisili)); setText('modal-phone', safe(d.hp)); setText('modal-email', safe(d.email));
+            
+            setText('modal-initials', getInitials(d.nama));
+            setText('modal-name', safe(d.nama));
+            setText('modal-job', safe(d.pekerjaan));
+            setText('modal-company', safe(d.perusahaan));
+            setText('modal-field', safe(d.bidang));
+            setText('modal-nim', safe(d.nim));
+            setText('modal-domicile', safe(d.domisili));
+            setText('modal-city', `${safe(d.kota)}, ${safe(d.provinsi)}`);
+            setText('modal-phone', safe(d.hp));
+            setText('modal-email', safe(d.email));
 
-            if (d.keahlian) { show('modal-skills-section'); setText('modal-skills', d.keahlian); } else hide('modal-skills-section');
-            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { show('modal-hiring-box'); setText('modal-hiring-detail', d.biz_desc); } else hide('modal-hiring-box');
-            if(safeStr(d.work_status).toLowerCase().includes('open')) { show('modal-gig-box'); setText('modal-gig-detail', d.keahlian); } else hide('modal-gig-box');
-            if(safeStr(d.is_owner).toLowerCase().includes('ya')) { show('modal-biz-box'); setText('modal-biz-name', d.biz_name); setText('modal-biz-desc', d.biz_desc); } else hide('modal-biz-box');
+            if (d.keahlian || d.sertifikasi) {
+                show('modal-skills-section');
+                setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
+            } else hide('modal-skills-section');
+
+            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
+                show('modal-hiring-box');
+                setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
+            } else hide('modal-hiring-box');
+
+            if(safeStr(d.work_status).toLowerCase().includes('open')) {
+                show('modal-gig-box');
+                setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
+            } else hide('modal-gig-box');
+
+            if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
+                show('modal-biz-box');
+                setText('modal-biz-name', safeStr(d.biz_name));
+                setText('modal-biz-desc', safeStr(d.biz_desc));
+            } else hide('modal-biz-box');
 
             const btn = document.getElementById('modal-wa-link');
-            if(d.hp) { btn.href = formatWhatsApp(d.hp, `Halo Bro ${d.nama}, diskusi dong.`); btn.classList.remove('hidden'); } else btn.classList.add('hidden');
-            
+            if (btn) {
+                if(d.hp) {
+                    let type = 'general';
+                    let details = '';
+                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
+                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
+                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
+                    
+                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+
+            if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
+
             const m = document.getElementById('detail-modal'); m.classList.remove('hidden');
             setTimeout(()=> { m.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95','opacity-0'); },10);
         }
@@ -805,6 +856,19 @@
         document.getElementById('search-input').addEventListener('input', () => applyFilters());
         document.getElementById('map-filter').addEventListener('change', (e) => { mapFilterArea = e.target.value; renderLeafletMarkers(); });
         document.getElementById('detail-modal').addEventListener('click', (e) => { if(e.target.id==='detail-modal') closeModal(); });
+        document.getElementById('btn-map-view').addEventListener('click', () => {
+            viewMode='map'; document.getElementById('list-view-container').classList.add('hidden'); document.getElementById('map-view-container').classList.remove('hidden');
+            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
+            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
+            document.getElementById('category-filters').classList.add('hidden'); 
+            setTimeout(() => { renderLeafletMarkers(); mapInstance.invalidateSize(); }, 100);
+        });
+        document.getElementById('btn-list-view').addEventListener('click', () => {
+            viewMode='list'; document.getElementById('list-view-container').classList.remove('hidden'); document.getElementById('map-view-container').classList.add('hidden');
+            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
+            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
+            document.getElementById('category-filters').classList.remove('hidden'); 
+        });
 
         fetchData(); lucide.createIcons();
     </script>
