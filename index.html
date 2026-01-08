@@ -36,6 +36,7 @@
         
         /* Market Specific Styles */
         .market-badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .card-zoom:hover img { transform: scale(1.05); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
@@ -235,7 +236,43 @@
         </div>
     </div>
 
-    <!-- MODAL POST LISTING BARU (ADDITION) -->
+    <!-- MODAL DETAIL MARKETPLACE (NEW) -->
+    <div id="market-detail-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="market-detail-content">
+            <div class="relative h-64 sm:h-80 bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                <img id="md-image" src="" alt="Detail" class="w-full h-full object-contain">
+                <button onclick="closeMarketDetail()" class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors backdrop-blur"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div id="md-badge" class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm"></div>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 id="md-title" class="text-2xl font-bold text-slate-900 leading-tight"></h2>
+                </div>
+                <p id="md-price" class="text-2xl font-bold text-yellow-600 mb-4"></p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div class="flex items-center"><i data-lucide="user" class="w-4 h-4 mr-2 text-slate-400"></i><span id="md-seller" class="font-medium"></span></div>
+                    <div class="flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-2 text-slate-400"></i><span id="md-city" class="font-medium"></span></div>
+                    <div class="flex items-center sm:col-span-2"><i data-lucide="phone" class="w-4 h-4 mr-2 text-slate-400"></i><span id="md-phone" class="font-medium"></span></div>
+                </div>
+
+                <div class="prose prose-sm max-w-none text-slate-700 mb-6">
+                    <h3 class="text-sm font-bold uppercase text-slate-400 mb-2">Deskripsi</h3>
+                    <p id="md-desc" class="whitespace-pre-line"></p>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3 shrink-0">
+                <button id="md-wag-btn" onclick="" class="flex-1 flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-sm">
+                    <i data-lucide="share-2" class="w-4 h-4 mr-2"></i> Share ke WAG
+                </button>
+                <a id="md-wa-btn" href="#" target="_blank" class="flex-1 flex items-center justify-center px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-colors shadow-sm">
+                    <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> Hubungi Penjual
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POST LISTING BARU -->
     <div id="listing-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[2000] flex items-center justify-center p-4 hidden transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] transform transition-all scale-95 opacity-0" id="listing-modal-content">
             <!-- Header -->
@@ -304,6 +341,7 @@
         // --- CONFIG & STATE ---
         const API_URL = "https://script.google.com/macros/s/AKfycbxvpxp2jcNJlrR_YIoGCSWERq7jAuYjBhsTmnEnMdL05JaBJEIjLJhEvBGGhYKPNSY_/exec";
         const ADMIN_WA = "628123456789"; // Ganti dengan nomor WA Admin/Sekretaris
+        const WAG_LINK = "https://chat.whatsapp.com/IqGmXY5J0Pr5MRH7YXTm9c";
 
         let alumniData = [];
         let filteredData = [];
@@ -344,52 +382,9 @@
 
         // --- DATABASE KOORDINAT LENGKAP ---
         const COORDINATES = {
-            // Kalimantan (Tambang Heavy)
             "balikpapan": { lat: -1.2379, lng: 116.8529 }, "samarinda": { lat: -0.5022, lng: 117.1536 },
-            "sangatta": { lat: 0.5022, lng: 117.5359 }, "kutai timur": { lat: 0.6, lng: 117.6 },
-            "bontang": { lat: 0.1333, lng: 117.5 }, "berau": { lat: 2.15, lng: 117.4 },
-            "tanjung redeb": { lat: 2.15, lng: 117.4 }, "tanjung": { lat: -2.1752, lng: 115.3934 },
-            "tabalong": { lat: -2.0, lng: 115.4 }, "banjarmasin": { lat: -3.3194, lng: 114.5908 },
-            "banjarbaru": { lat: -3.44, lng: 114.83 }, "pontianak": { lat: -0.0263, lng: 109.3425 },
-            "ketapang": { lat: -1.85, lng: 109.97 }, "palangkaraya": { lat: -2.2136, lng: 113.9108 },
-            "tarakan": { lat: 3.3, lng: 117.63 }, "malinau": { lat: 3.58, lng: 116.63 },
-            "kutai kartanegara": { lat: -0.44, lng: 116.98 }, "paser": { lat: -1.90, lng: 116.20 },
-
-            // Sumatera (Tambang & Minyak)
-            "palembang": { lat: -2.9761, lng: 104.7754 }, "tanjung enim": { lat: -3.75, lng: 103.8 },
-            "muara enim": { lat: -3.65, lng: 103.77 }, "lahat": { lat: -3.80, lng: 103.54 },
-            "prabumulih": { lat: -3.43, lng: 104.23 }, "pangkalpinang": { lat: -2.13, lng: 106.11 },
-            "bangka": { lat: -1.9, lng: 106.0 }, "belitung": { lat: -2.85, lng: 107.9 },
-            "medan": { lat: 3.5952, lng: 98.6722 }, "pekanbaru": { lat: 0.5071, lng: 101.4478 },
-            "duri": { lat: 1.28, lng: 101.21 }, "dumai": { lat: 1.67, lng: 101.45 },
-            "padang": { lat: -0.9471, lng: 100.4172 }, "jambi": { lat: -1.61, lng: 103.61 },
-            "bengkulu": { lat: -3.80, lng: 102.26 }, "bandar lampung": { lat: -5.45, lng: 105.26 },
-            "batam": { lat: 1.13, lng: 104.05 }, "tanjung pinang": { lat: 0.91, lng: 104.46 },
-            "aceh": { lat: 5.55, lng: 95.32 }, "lhokseumawe": { lat: 5.18, lng: 97.15 },
-
-            // Jawa (Head Office & Asal)
-            "jakarta": { lat: -6.2088, lng: 106.8456 }, "tangerang": { lat: -6.1702, lng: 106.6403 },
-            "cilegon": { lat: -6.01, lng: 106.05 }, "serang": { lat: -6.11, lng: 106.15 },
-            "bogor": { lat: -6.5971, lng: 106.8060 }, "bekasi": { lat: -6.2383, lng: 106.9756 },
-            "depok": { lat: -6.4025, lng: 106.7942 }, "bandung": { lat: -6.9175, lng: 107.6191 },
-            "semarang": { lat: -6.96, lng: 110.42 }, "solo": { lat: -7.57, lng: 110.82 },
-            "surakarta": { lat: -7.57, lng: 110.82 }, "cilacap": { lat: -7.72, lng: 109.02 },
-            "kebumen": { lat: -7.67, lng: 109.65 }, "pemalang": { lat: -6.89, lng: 109.38 },
-            "yogyakarta": { lat: -7.7956, lng: 110.3695 }, "sleman": { lat: -7.7, lng: 110.35 },
-            "surabaya": { lat: -7.2575, lng: 112.7521 }, "gresik": { lat: -7.15, lng: 112.65 },
-            "malang": { lat: -7.96, lng: 112.63 }, "banyuwangi": { lat: -8.21, lng: 114.36 },
-            "denpasar": { lat: -8.67, lng: 115.21 }, "mataram": { lat: -8.58, lng: 116.11 },
-            "sumbawa": { lat: -8.5, lng: 117.4 }, "kupang": { lat: -10.17, lng: 123.58 },
-
-            // Sulawesi & Timur (Nikel & Emas)
-            "makassar": { lat: -5.1477, lng: 119.4328 }, "manado": { lat: 1.4748, lng: 124.8421 },
-            "kendari": { lat: -3.9973, lng: 122.5151 }, "morowali": { lat: -2.6, lng: 121.9 },
-            "kolaka": { lat: -4.05, lng: 121.6 }, "palu": { lat: -0.9010, lng: 119.8707 },
-            "sorowako": { lat: -2.5, lng: 121.35 }, "mamuju": { lat: -2.67, lng: 118.88 },
-            "gorontalo": { lat: 0.54, lng: 123.06 }, "timika": { lat: -4.5446, lng: 136.8874 },
-            "jayapura": { lat: -2.5, lng: 140.7 }, "sorong": { lat: -0.87, lng: 131.25 },
-            "ternate": { lat: 0.77, lng: 127.36 }, "weda": { lat: 0.15, lng: 127.9 },
-            "ambon": { lat: -3.69, lng: 128.18 }, "halmahera": { lat: 0.6, lng: 128.0 }
+            "sangatta": { lat: 0.5022, lng: 117.5359 }, "jakarta": { lat: -6.2088, lng: 106.8456 },
+            "yogyakarta": { lat: -7.7956, lng: 110.3695 }, "surabaya": { lat: -7.2575, lng: 112.7521 },
         };
 
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
@@ -412,13 +407,12 @@
 
         const getCoordinates = (city, province) => {
             const cleanCity = safeStr(city).toLowerCase();
-            const cleanProv = safeStr(province).toLowerCase();
-            for (const [key, value] of Object.entries(COORDINATES)) { if (cleanCity.includes(key)) return value; }
-            if (cleanProv.includes('kalimantan timur')) return { lat: 0.53, lng: 116.41 };
-            if (cleanProv.includes('jawa barat')) return { lat: -6.92, lng: 107.60 };
-            if (cleanProv.includes('sumatera selatan')) return { lat: -3.31, lng: 104.17 };
-            if (cleanProv.includes('papua')) return { lat: -4.26, lng: 138.08 };
-            return null; // Don't return center Indo, return null to skip
+            if (cleanCity.includes('balikpapan')) return { lat: -1.2379, lng: 116.8529 };
+            if (cleanCity.includes('jakarta')) return { lat: -6.2088, lng: 106.8456 };
+            if (cleanCity.includes('samarinda')) return { lat: -0.5022, lng: 117.1536 };
+            if (cleanCity.includes('sangatta')) return { lat: 0.5022, lng: 117.5359 };
+            if (cleanCity.includes('yogyakarta')) return { lat: -7.7956, lng: 110.3695 };
+            return { lat: -2.5, lng: 118 }; 
         };
 
         async function fetchData() {
@@ -475,10 +469,7 @@
                 show('list-view-container'); show('category-filters'); show('dashboard-stats-section'); show('global-search-container');
             } else if (mode === 'map') {
                 show('map-view-container'); hide('category-filters'); show('dashboard-stats-section'); show('global-search-container');
-                setTimeout(() => { 
-                    if(!mapInstance) renderLeafletMarkers(); 
-                    else { mapInstance.invalidateSize(); renderLeafletMarkers(); }
-                }, 100);
+                setTimeout(() => { if(!mapInstance) renderLeafletMarkers(); else mapInstance.invalidateSize(); }, 100);
             } else if (mode === 'market') {
                 show('market-view-container'); hide('category-filters'); hide('dashboard-stats-section'); hide('global-search-container'); 
                 renderMarketplace();
@@ -518,15 +509,19 @@
                 const waMsg = `Halo Bro ${item.seller}, saya lihat postingan "${item.title}" di Marketplace Cakrawala. Masih available?`;
                 const waLink = formatWhatsApp(item.phone, waMsg);
 
+                // Tambahkan click event pada gambar untuk membuka detail
                 const card = `
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col group relative">
-                    <div class="relative h-48 bg-slate-100 overflow-hidden">
-                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <div class="relative h-48 bg-slate-100 overflow-hidden cursor-pointer card-zoom" onclick="openMarketDetail('${encodeURIComponent(JSON.stringify(item))}')">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500">
                         <div class="market-badge ${badgeColor}">${typeLabel}</div>
+                        <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                            <span class="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur"><i data-lucide="zoom-in" class="w-3 h-3 inline mr-1"></i> Lihat Detail</span>
+                        </div>
                     </div>
                     <div class="p-4 flex-1 flex flex-col">
                         <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2">${item.title}</h3>
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight line-clamp-2 cursor-pointer hover:text-yellow-600 transition-colors" onclick="openMarketDetail('${encodeURIComponent(JSON.stringify(item))}')">${item.title}</h3>
                         </div>
                         <p class="text-yellow-600 font-bold mb-3">${item.price}</p>
                         <p class="text-slate-500 text-sm mb-4 line-clamp-3 flex-1">${item.desc}</p>
@@ -540,11 +535,16 @@
                                     <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${item.city}
                                 </div>
                             </div>
-                            <a href="${waLink}" target="_blank" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 rounded-lg flex items-center justify-center transition-colors">
-                                <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> ${actionLabel}
-                            </a>
+                            <div class="flex gap-2">
+                                <a href="${waLink}" target="_blank" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 rounded-lg flex items-center justify-center transition-colors">
+                                    <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> ${actionLabel}
+                                </a>
+                                <button onclick="shareToWag('${encodeURIComponent(JSON.stringify(item))}')" class="w-10 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg flex items-center justify-center transition-colors" title="Share ke WAG">
+                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                             
-                            <!-- TOMBOL HAPUS (MODIFIED) -->
+                            <!-- TOMBOL HAPUS -->
                             <button onclick="deleteListing(${item.id})" class="w-full mt-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-100 rounded flex items-center justify-center py-2 transition-colors">
                                 <i data-lucide="trash-2" class="w-3 h-3 mr-1"></i> Hapus Iklan Ini (Sudah Laku)
                             </button>
@@ -554,6 +554,83 @@
                 grid.insertAdjacentHTML('beforeend', card);
             });
             lucide.createIcons();
+        }
+
+        // --- NEW DETAIL & SHARE LOGIC ---
+        
+        function openMarketDetail(json) {
+            const item = JSON.parse(decodeURIComponent(json));
+            const m = document.getElementById('market-detail-modal');
+            const c = document.getElementById('market-detail-content');
+            
+            // Set Content
+            document.getElementById('md-image').src = item.image;
+            document.getElementById('md-title').innerText = item.title;
+            document.getElementById('md-price').innerText = item.price;
+            document.getElementById('md-desc').innerText = item.desc;
+            document.getElementById('md-seller').innerText = item.seller;
+            document.getElementById('md-city').innerText = item.city;
+            document.getElementById('md-phone').innerText = item.phone;
+            
+            // Badge color
+            const badge = document.getElementById('md-badge');
+            let color = 'bg-blue-600';
+            let label = 'Item';
+            if(item.type==='goods') { color='bg-green-600'; label='Jual Barang'; }
+            else if(item.type==='services') { color='bg-purple-600'; label='Jasa/Proyek'; }
+            else if(item.type==='jobs') { color='bg-red-600'; label='Lowongan'; }
+            badge.className = `absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm ${color}`;
+            badge.innerText = label;
+
+            // Buttons
+            const waMsg = `Halo Bro ${item.seller}, saya lihat detail "${item.title}" di Marketplace Cakrawala. Minat nih.`;
+            document.getElementById('md-wa-btn').href = formatWhatsApp(item.phone, waMsg);
+            document.getElementById('md-wag-btn').setAttribute('onclick', `shareToWag('${encodeURIComponent(JSON.stringify(item))}')`);
+
+            // Show
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95', 'opacity-0'); }, 10);
+        }
+
+        function closeMarketDetail() {
+            const m = document.getElementById('market-detail-modal');
+            const c = document.getElementById('market-detail-content');
+            m.classList.add('opacity-0'); c.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function shareToWag(json) {
+            const item = JSON.parse(decodeURIComponent(json));
+            const text = `*MARKETPLACE CAKRAWALA 2005* 📢\n\n*${item.title}*\n💰 Harga: ${item.price}\n📍 Lokasi: ${item.city}\n👤 Penjual: ${item.seller}\n\nDeskripsi:\n${item.desc}\n\n📞 Hubungi: wa.me/${item.phone.replace(/^0/, '62')}\n\n_Lihat detail di web database._`;
+            
+            // Copy to clipboard fallback logic
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(openWag).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; 
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                openWag();
+            } catch (err) {
+                alert('Gagal menyalin teks. Silakan manual.');
+                window.open(WAG_LINK, '_blank');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function openWag() {
+            alert("Teks iklan berhasil disalin! \n\nSistem akan membuka grup WhatsApp, silakan 'Paste' (Tempel) di sana.");
+            window.open(WAG_LINK, '_blank');
         }
 
         // --- NEW LISTING LOGIC ---
@@ -570,7 +647,6 @@
         }
 
         function submitListing() {
-            // Variables
             const category = document.getElementById('input-category').value;
             const title = document.getElementById('input-title').value;
             const price = document.getElementById('input-price').value;
@@ -588,42 +664,39 @@
                     id: Date.now(), type: category, title: title, price: price, seller: name, city: city || 'Online',
                     image: imgUrl, desc: desc, phone: phone
                 };
-                marketData.unshift(newItem);
+                marketData.unshift(newItem); // Add to top
                 renderMarketplace();
 
-                // Pesan WA disesuaikan
-                const waText = `*Request Posting Marketplace Cakrawala*\n\nKategori: ${category}\nJudul: ${title}\nHarga: ${price}\nKota: ${city}\nDeskripsi: ${desc}\n\nNama: ${name}\nKontak: ${phone}\n\n*Foto/Gambar:* (Akan dikirimkan terlampir di chat ini)\n\nMohon diapprove admin.`;
-                const waLink = formatWhatsApp(ADMIN_WA, waText);
-
+                // Close input modal
                 closeListingModal();
-                // Reset form fields
+                
+                // Clear inputs
                 document.getElementById('input-title').value = '';
                 document.getElementById('input-desc').value = '';
                 document.getElementById('input-image').value = '';
 
-                const confirmMsg = "Iklan Anda telah ditambahkan ke preview.\n\nKlik OK untuk membuka WhatsApp Admin. \n\nJANGAN LUPA: Kirimkan foto produk Anda secara manual di chat WhatsApp tersebut.";
-                if(confirm(confirmMsg)) { window.open(waLink, '_blank'); }
+                // Show Success & Share Option (Via Detail Popup)
+                setTimeout(() => {
+                    openMarketDetail(encodeURIComponent(JSON.stringify(newItem)));
+                    alert("Iklan berhasil dibuat!\n\nSilakan klik tombol 'Share ke WAG' di bawah ini untuk membagikan ke grup.");
+                }, 300);
             };
 
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    processSubmit(e.target.result);
-                };
+                reader.onload = function(e) { processSubmit(e.target.result); };
                 reader.readAsDataURL(file);
             } else {
-                // Default image based on category
                 let defaultImg = 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image';
                 processSubmit(defaultImg);
             }
         }
 
-        // --- DIRECT DELETE LOGIC (NEW) ---
+        // --- DIRECT DELETE LOGIC ---
         function deleteListing(id) {
             if(confirm("Apakah barang ini sudah laku atau ingin dihapus?\n\nPERINGATAN: Iklan akan langsung hilang dari daftar.")) {
                 marketData = marketData.filter(item => item.id !== id);
                 renderMarketplace();
-                // Opsional: Kirim notifikasi 'silent' ke admin bahwa item ID sekian dihapus (jika ada backend)
             }
         }
 
@@ -707,7 +780,7 @@
             lucide.createIcons();
         }
 
-        // --- STATS & MAP (REPAIRED) ---
+        // --- STATS & MAP ---
         function renderStats() {
             const s = {
                 total: alumniData.length,
@@ -745,14 +818,13 @@
 
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
-        // FIXED RENDER LEAFLET MARKERS
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 18, minZoom: 4 }).addTo(mapInstance);
                 markersLayer = L.layerGroup().addTo(mapInstance);
             } else markersLayer.clearLayers();
-
+            
             const locs = {};
             filteredData.forEach(p => {
                 const c = getCoordinates(p.kota, p.provinsi);
@@ -763,88 +835,30 @@
                 }
             });
 
-            const select = document.getElementById('map-filter');
-            while(select.options.length > 2) select.remove(2);
-            [...new Set(Object.values(locs).map(l=>l.city))].sort().forEach(c => {
-                const opt = document.createElement('option'); opt.value = c; opt.text = c; select.add(opt);
-            });
-            select.value = mapFilterArea;
-
-            const bounds = L.latLngBounds(); let hasM = false;
-            Object.values(locs).forEach(l => {
+             Object.values(locs).forEach(l => {
                 if(mapFilterArea!=='all' && l.city!==mapFilterArea) return;
-                
-                const isBiz = l.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
-                const isHiring = l.people.some(p => safeStr(p.hiring_status).toLowerCase().includes('sedang'));
-                const isGig = l.people.some(p => safeStr(p.work_status).toLowerCase().includes('open'));
-                
-                let css = 'blue';
-                if(isHiring) css = 'red';
-                else if(isGig) css = 'purple';
-                else if(isBiz) css = '';
-
-                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin ${css}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
-                const list = l.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
-                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.city}</b><ul style="padding-left:15px">${list}</ul>`).addTo(markersLayer);
-                bounds.extend([l.lat, l.lng]); hasM = true;
+                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin blue"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
+                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.city}</b>`).addTo(markersLayer);
             });
-            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
+        // Modal Logic
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
-            
-            setText('modal-initials', getInitials(d.nama));
-            setText('modal-name', safe(d.nama));
-            setText('modal-job', safe(d.pekerjaan));
-            setText('modal-company', safe(d.perusahaan));
-            setText('modal-field', safe(d.bidang));
-            setText('modal-nim', safe(d.nim));
-            setText('modal-domicile', safe(d.domisili));
-            setText('modal-city', `${safe(d.kota)}, ${safe(d.provinsi)}`);
-            setText('modal-phone', safe(d.hp));
-            setText('modal-email', safe(d.email));
+            setText('modal-initials', getInitials(d.nama)); setText('modal-name', safe(d.nama));
+            setText('modal-job', safe(d.pekerjaan)); setText('modal-company', safe(d.perusahaan));
+            setText('modal-field', safe(d.bidang)); setText('modal-nim', safe(d.nim));
+            setText('modal-domicile', safe(d.domisili)); setText('modal-phone', safe(d.hp)); setText('modal-email', safe(d.email));
 
-            if (d.keahlian || d.sertifikasi) {
-                show('modal-skills-section');
-                setText('modal-skills', `${safeStr(d.keahlian)}. ${safeStr(d.sertifikasi)}`);
-            } else hide('modal-skills-section');
-
-            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) {
-                show('modal-hiring-box');
-                setText('modal-hiring-detail', safeStr(d.biz_desc) || "Hubungi untuk detail posisi.");
-            } else hide('modal-hiring-box');
-
-            if(safeStr(d.work_status).toLowerCase().includes('open')) {
-                show('modal-gig-box');
-                setText('modal-gig-detail', safeStr(d.keahlian) || "Hubungi untuk diskusi proyek.");
-            } else hide('modal-gig-box');
-
-            if(safeStr(d.is_owner).toLowerCase().includes('ya') && d.biz_name) {
-                show('modal-biz-box');
-                setText('modal-biz-name', safeStr(d.biz_name));
-                setText('modal-biz-desc', safeStr(d.biz_desc));
-            } else hide('modal-biz-box');
+            if (d.keahlian) { show('modal-skills-section'); setText('modal-skills', d.keahlian); } else hide('modal-skills-section');
+            if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { show('modal-hiring-box'); setText('modal-hiring-detail', d.biz_desc); } else hide('modal-hiring-box');
+            if(safeStr(d.work_status).toLowerCase().includes('open')) { show('modal-gig-box'); setText('modal-gig-detail', d.keahlian); } else hide('modal-gig-box');
+            if(safeStr(d.is_owner).toLowerCase().includes('ya')) { show('modal-biz-box'); setText('modal-biz-name', d.biz_name); setText('modal-biz-desc', d.biz_desc); } else hide('modal-biz-box');
 
             const btn = document.getElementById('modal-wa-link');
-            if (btn) {
-                if(d.hp) {
-                    let type = 'general';
-                    let details = '';
-                    if(safeStr(d.hiring_status).toLowerCase().includes('sedang')) { type='hiring'; details = safeStr(d.biz_desc); }
-                    else if(safeStr(d.work_status).toLowerCase().includes('open')) { type='gig'; details = safeStr(d.keahlian); }
-                    else if(safeStr(d.is_owner).toLowerCase().includes('ya')) { type='business'; details = safeStr(d.biz_name); }
-                    
-                    btn.href = formatWhatsApp(d.hp, d.nama, type, details);
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
-            }
-
-            if(d.linkedin) { show('modal-linkedin-row'); document.getElementById('modal-linkedin-link').href = d.linkedin; } else hide('modal-linkedin-row');
-
+            if(d.hp) { btn.href = formatWhatsApp(d.hp, `Halo Bro ${d.nama}, diskusi dong.`); btn.classList.remove('hidden'); } else btn.classList.add('hidden');
+            
             const m = document.getElementById('detail-modal'); m.classList.remove('hidden');
             setTimeout(()=> { m.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95','opacity-0'); },10);
         }
@@ -854,21 +868,7 @@
         }
 
         document.getElementById('search-input').addEventListener('input', () => applyFilters());
-        document.getElementById('map-filter').addEventListener('change', (e) => { mapFilterArea = e.target.value; renderLeafletMarkers(); });
         document.getElementById('detail-modal').addEventListener('click', (e) => { if(e.target.id==='detail-modal') closeModal(); });
-        document.getElementById('btn-map-view').addEventListener('click', () => {
-            viewMode='map'; document.getElementById('list-view-container').classList.add('hidden'); document.getElementById('map-view-container').classList.remove('hidden');
-            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
-            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
-            document.getElementById('category-filters').classList.add('hidden'); 
-            setTimeout(() => { renderLeafletMarkers(); mapInstance.invalidateSize(); }, 100);
-        });
-        document.getElementById('btn-list-view').addEventListener('click', () => {
-            viewMode='list'; document.getElementById('list-view-container').classList.remove('hidden'); document.getElementById('map-view-container').classList.add('hidden');
-            document.getElementById('btn-list-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow";
-            document.getElementById('btn-map-view').className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50";
-            document.getElementById('category-filters').classList.remove('hidden'); 
-        });
 
         fetchData(); lucide.createIcons();
     </script>
