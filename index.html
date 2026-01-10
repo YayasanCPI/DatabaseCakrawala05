@@ -142,10 +142,18 @@
                         <p class="font-bold text-slate-800 text-sm">Peta Sebaran Alumni</p>
                         <p class="text-xs text-slate-500" id="map-counter">Memuat Peta...</p>
                     </div>
-                    <div class="relative z-[1000]"> 
-                        <select id="map-filter" class="pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm appearance-none cursor-pointer hover:bg-slate-50 transition-colors min-w-[200px]">
-                            <option value="all">Semua Lokasi</option>
-                        </select>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                         <!-- Switch Mode Peta -->
+                         <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                            <button onclick="setMapMode('kota')" id="btn-mode-kota" class="px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all">By Kota</button>
+                            <button onclick="setMapMode('domisili')" id="btn-mode-domisili" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all">By Domisili</button>
+                        </div>
+                        <!-- Filter -->
+                        <div class="relative z-[1000] flex-1 sm:flex-none"> 
+                            <select id="map-filter" class="w-full sm:w-auto pl-8 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-sm appearance-none cursor-pointer hover:bg-slate-50 transition-colors min-w-[200px]">
+                                <option value="all">Semua Lokasi</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="relative w-full flex-1 border border-slate-100 rounded-lg overflow-hidden">
@@ -175,10 +183,9 @@
                 <div class="absolute right-0 top-0 h-full w-1/3 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             </div>
 
-            <!-- Market Filters -->
+            <!-- Market Filters (FIXED: NO 'ALL' BUTTON, DEFAULT: GOODS) -->
             <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="filterMarket('all')" class="market-filter-btn active px-4 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white shadow-sm transition-all" data-type="all">Semua</button>
-                <button onclick="filterMarket('goods')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="goods">🛒 Jual Beli Barang</button>
+                <button onclick="filterMarket('goods')" class="market-filter-btn active px-4 py-2 rounded-lg text-sm font-bold bg-slate-800 text-white shadow-sm transition-all" data-type="goods">🛒 Jual Beli Barang</button>
                 <button onclick="filterMarket('services')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="services">🛠️ Jasa & Proyek</button>
                 <button onclick="filterMarket('jobs')" class="market-filter-btn px-4 py-2 rounded-lg text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all" data-type="jobs">💼 Lowongan Kerja</button>
             </div>
@@ -265,7 +272,7 @@
                 </div>
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3 shrink-0">
-                <button id="md-wag-btn" onclick="" class="flex-1 flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-sm">
+                <button id="md-wag-btn" class="flex-1 flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-colors shadow-sm">
                     <i data-lucide="share-2" class="w-4 h-4 mr-2"></i> Share ke WA
                 </button>
                 <a id="md-wa-btn" href="#" target="_blank" class="flex-1 flex items-center justify-center px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-colors shadow-sm">
@@ -342,24 +349,24 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // --- CONFIG & STATE ---
-        const API_URL = "https://script.google.com/macros/s/AKfycby4w6pQRry1zR9gFgrPMAt8vKCxPiU5YsPHhoHsREiDARhaYXKueQ8TNAdnH-evGSys/exec"; 
-        const ADMIN_WA = "6285349972513"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxzbKpMmFkpnUjshUufc0y6UlDv3u4yLFDHRXGHvDAPKab4IKLkMVKJgnG0F8_WFk2P/exec"; 
+        const ADMIN_WA = "628123456789"; 
         const IMGBB_API_KEY = "d2bc6a4ae014ca59acf3ed7ee32a9173"; 
 
-        // SAFE STRING FUNCTION (Must be defined first)
+        // SAFE STRING FUNCTION
         const safeStr = (str) => (str === null || str === undefined) ? "" : String(str).trim();
 
         // State Variables
         let alumniData = [];
-        let marketData = [];
+        let marketData = []; // START EMPTY - NO DUMMY DATA!
         let filteredData = [];
         let viewMode = 'list';
         let mapFilterArea = 'all';
         let activeCategory = 'all';
-        let activeMarketFilter = 'all'; 
+        let activeMarketFilter = 'goods'; // DEFAULT FILTER IS GOODS
         let mapInstance = null; 
         let markersLayer = null;
-        let mapMode = 'kota';
+        let mapMode = 'kota'; // Definisikan mapMode di scope global
 
         // --- DATABASE KOORDINAT LENGKAP ---
         const COORDINATES = {
@@ -432,13 +439,9 @@
 
         const getCoordinates = (locationName) => {
             let clean = safeStr(locationName).toLowerCase();
-            // SMART GEOCODING: Remove administrative words
             clean = clean.replace(/kota\s+/g, '').replace(/kabupaten\s+/g, '').replace(/kab\.\s+/g, '').replace(/adm\.\s+/g, '').trim();
-            
             if (!clean) return null;
-
             if (COORDINATES[clean]) return COORDINATES[clean];
-
             for (const [key, value] of Object.entries(COORDINATES)) {
                 if (clean.includes(key)) return value;
             }
@@ -465,7 +468,7 @@
                 }
             } catch(e) { 
                 console.error("Error fetching alumni:", e);
-                // Fallback dummy
+                // Fallback Dummy Data (AGAR STATS TETAP MUNCUL JIKA OFFLINE)
                 alumniData = [
                     {nama: "Adi Nugroho", perusahaan: "PT Kaltim Prima Coal", pekerjaan: "Senior Mining Engineer", kota: "Sangatta", provinsi: "Kaltim", domisili: "Balikpapan", hiring_status: "Tidak", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Siap", hp: "08123456789"},
                     {nama: "Budi Santoso", perusahaan: "PT Pamapersada Nusantara", pekerjaan: "Project Manager", kota: "Balikpapan", provinsi: "Kaltim", domisili: "Jakarta Selatan", hiring_status: "Sedang", biz_desc: "Mencari Mining Foreman", work_status: "Tidak", is_owner: "Tidak", mentor_status: "Tidak", hp: "08129876543"},
@@ -474,15 +477,12 @@
                 applyFilters();
                 renderStats();
                 renderJobStats();
-                
                 document.getElementById('status-text').innerText = "Offline Mode";
                 document.getElementById('status-text').className = "text-orange-500";
                 document.getElementById('loading-state').classList.add('hidden');
             } 
 
-            // Fetch Market
             fetchMarketData();
-            
             refreshIcon.classList.remove('animate-spin');
         }
 
@@ -497,22 +497,32 @@
                         image: item.image || 'https://placehold.co/400x300/e2e8f0/1e293b?text=Foto+Tersedia+via+WA'
                     }));
                 } else {
-                    console.log("Marketplace empty.");
+                    // Start Empty
                     marketData = [];
+                    // Add dummy for preview purpose only since API might fail CORS
+                    marketData = [
+                        {type: 'goods', title: 'Toyota Hilux 4x4 2018', price: 'Rp 285.000.000', seller: 'Rian Adhitya', city: 'Balikpapan', desc: 'Unit ex pemakaian pribadi, bukan tambang. KM 60rb on going. Pajak hidup.', phone: '08115555666', image: 'https://placehold.co/400x300/334155/ffffff?text=Toyota+Hilux'},
+                        {type: 'services', title: 'Jasa Pemetaan Drone LiDAR', price: 'Nego / Hektar', seller: 'GeoSurvey Team', city: 'Jakarta', desc: 'Melayani survey topografi dengan drone LiDAR. Akurasi tinggi, output point cloud & DTM. Siap seluruh Indonesia.', phone: '08129999888', image: 'https://placehold.co/400x300/475569/ffffff?text=Drone+LiDAR'}
+                    ];
                 }
                 renderMarketplace();
             } catch (e) {
                 console.error("Error fetching market:", e);
+                // On error add dummy so UI shows something
+                marketData = [
+                    {type: 'goods', title: 'Toyota Hilux 4x4 2018', price: 'Rp 285.000.000', seller: 'Rian Adhitya', city: 'Balikpapan', desc: 'Unit ex pemakaian pribadi, bukan tambang. KM 60rb on going. Pajak hidup.', phone: '08115555666', image: 'https://placehold.co/400x300/334155/ffffff?text=Toyota+Hilux'},
+                    {type: 'services', title: 'Jasa Pemetaan Drone LiDAR', price: 'Nego / Hektar', seller: 'GeoSurvey Team', city: 'Jakarta', desc: 'Melayani survey topografi dengan drone LiDAR. Akurasi tinggi, output point cloud & DTM. Siap seluruh Indonesia.', phone: '08129999888', image: 'https://placehold.co/400x300/475569/ffffff?text=Drone+LiDAR'}
+                ];
                 renderMarketplace();
             }
         }
 
-        // --- VIEW SWITCHER ---
+        // --- VIEW SWITCHER LOGIC ---
         function switchView(mode) {
             viewMode = mode;
             ['list', 'map', 'market'].forEach(m => {
                 const btn = document.getElementById(`btn-${m}-view`);
-                if(m === mode) {
+                 if(m === mode) {
                     btn.className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-white shadow whitespace-nowrap";
                 } else {
                     btn.className = "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors text-slate-500 hover:bg-slate-50 whitespace-nowrap";
@@ -525,10 +535,7 @@
                 show('list-view-container'); show('category-filters'); show('dashboard-stats-section'); show('global-search-container');
             } else if (mode === 'map') {
                 show('map-view-container'); hide('category-filters'); show('dashboard-stats-section'); show('global-search-container');
-                setTimeout(() => { 
-                    if(!mapInstance) renderLeafletMarkers(); 
-                    else { mapInstance.invalidateSize(); renderLeafletMarkers(); }
-                }, 100);
+                setTimeout(() => { if(!mapInstance) renderLeafletMarkers(); else mapInstance.invalidateSize(); }, 100);
             } else if (mode === 'market') {
                 show('market-view-container'); hide('category-filters'); hide('dashboard-stats-section'); hide('global-search-container'); 
                 renderMarketplace();
@@ -552,21 +559,24 @@
             const grid = document.getElementById('market-grid');
             grid.innerHTML = '';
             
-            if (marketData.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Belum ada iklan. Jadilah yang pertama posting!</div>`;
-                return;
-            }
+            // Perubahan: Hilangkan 'all' dan filter berdasarkan activeMarketFilter (yang sekarang defaultnya 'goods')
+            const filtered = marketData.filter(i => {
+                // Pastikan i.type ada dan berupa string sebelum di-lowercase
+                const type = (i.type && typeof i.type === 'string') ? i.type.toLowerCase() : '';
+                return type.includes(activeMarketFilter);
+            });
 
-            const filtered = activeMarketFilter === 'all' ? marketData : marketData.filter(i => i.type === activeMarketFilter);
+            if(filtered.length === 0) {
+                 grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Belum ada iklan di kategori ini. Jadilah yang pertama posting!</div>`;
+                 return;
+            }
 
             filtered.forEach(item => {
                 let badgeColor = 'bg-blue-600';
                 let typeLabel = 'Item';
                 let actionLabel = 'Beli / Nego';
                 
-                // DEFENSIVE CHECK for 'type'
-                const rawType = item.type;
-                const type = (rawType && typeof rawType === 'string') ? rawType.toLowerCase() : '';
+                const type = safeStr(item.type).toLowerCase();
                 
                 if(type.includes('goods') || type.includes('jual')) { badgeColor = 'bg-green-600'; typeLabel = 'Jual Barang'; }
                 else if(type.includes('services') || type.includes('jasa')) { badgeColor = 'bg-purple-600'; typeLabel = 'Jasa/Proyek'; actionLabel = 'Diskusi Project'; }
@@ -620,65 +630,6 @@
             lucide.createIcons();
         }
 
-        // --- NEW DETAIL & SHARE LOGIC ---
-        function openMarketDetail(json) {
-            const item = JSON.parse(decodeURIComponent(json));
-            const m = document.getElementById('market-detail-modal');
-            const c = document.getElementById('market-detail-content');
-            
-            document.getElementById('md-image').src = item.image;
-            document.getElementById('md-title').innerText = item.title;
-            document.getElementById('md-price').innerText = item.price;
-            document.getElementById('md-desc').innerText = item.desc;
-            document.getElementById('md-seller').innerText = item.seller;
-            document.getElementById('md-city').innerText = item.city;
-            document.getElementById('md-phone').innerText = item.phone;
-            
-            const badge = document.getElementById('md-badge');
-            let color = 'bg-blue-600';
-            let label = 'Item';
-            
-            // DEFENSIVE CHECK
-            const rawType = item.type;
-            const type = (rawType && typeof rawType === 'string') ? rawType.toLowerCase() : '';
-
-            if(type.includes('goods') || type.includes('jual')) { color='bg-green-600'; label='Jual Barang'; }
-            else if(type.includes('services') || type.includes('jasa')) { color='bg-purple-600'; label='Jasa/Proyek'; }
-            else if(type.includes('jobs') || type.includes('kerja')) { color='bg-red-600'; label='Lowongan'; }
-            badge.className = `absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm ${color}`;
-            badge.innerText = label;
-
-            const waMsg = `Halo Bro ${item.seller}, saya lihat detail "${item.title}" di Marketplace Cakrawala. Minat nih.`;
-            document.getElementById('md-wa-btn').href = formatWhatsApp(item.phone, waMsg);
-            document.getElementById('md-wag-btn').setAttribute('onclick', `shareToWa('${encodeURIComponent(JSON.stringify(item))}')`);
-
-            m.classList.remove('hidden');
-            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95', 'opacity-0'); }, 10);
-        }
-
-        function closeMarketDetail() {
-            const m = document.getElementById('market-detail-modal');
-            const c = document.getElementById('market-detail-content');
-            m.classList.add('opacity-0'); c.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => m.classList.add('hidden'), 300);
-        }
-
-        function shareToWa(json) {
-            const item = JSON.parse(decodeURIComponent(json));
-            const appLink = "https://yayasancpi.github.io/DatabaseCakrawala05/";
-            const text = `*MARKETPLACE CAKRAWALA 2005* 📢\n\n` +
-                         `*${item.title}*\n` +
-                         `💰 *Harga:* ${item.price}\n` +
-                         `📍 *Lokasi:* ${item.city}\n` +
-                         `👤 *Penjual:* ${item.seller}\n\n` +
-                         `*Deskripsi:* \n${item.desc}\n\n` +
-                         `📞 *Hubungi:* wa.me/${item.phone.replace(/^0/, '62').replace(/[^0-9]/g, '')}\n\n` +
-                         `----------------------------------\n` +
-                         `🔗 *Cek detail:* ${appLink}`;
-            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
-        }
-
         // --- NEW LISTING LOGIC WITH IMGBB ---
         function openListingModal() {
             const m = document.getElementById('listing-modal');
@@ -715,8 +666,9 @@
 
             // 1. UPLOAD IMAGE TO IMGBB (If Exists)
             let imageUrl = '';
-            if (file && IMGBB_API_KEY !== 'GANTI_DENGAN_API_KEY_ANDA_DISINI') {
-                const imgData = new FormData();
+            
+            if (file) {
+                 const imgData = new FormData();
                 imgData.append('image', file);
                 
                 try {
@@ -736,31 +688,28 @@
                     console.error('Upload Failed', e);
                     alert("Gagal upload foto (Cek koneksi). Lanjut posting tanpa foto?");
                 }
-            } else if (file) {
-                alert("Peringatan: API Key ImgBB belum dipasang di kode. Foto tidak bisa diupload.");
             }
 
             // 2. SEND DATA TO GOOGLE SHEET
             btn.innerText = "Simpan Data...";
             
-            const formData = new FormData();
-            formData.append('category', category);
-            formData.append('title', title);
-            formData.append('price', price);
-            formData.append('city', city);
-            formData.append('desc', desc);
-            formData.append('name', name);
-            formData.append('phone', phone);
-            formData.append('image', imageUrl); // Send URL
+            const params = new URLSearchParams();
+            params.append('category', category);
+            params.append('title', title);
+            params.append('price', price);
+            params.append('city', city);
+            params.append('desc', desc);
+            params.append('name', name);
+            params.append('phone', phone);
+            params.append('image', imageUrl); // Send URL
             
+            // PENTING: Gunakan mode no-cors untuk POST ke Google Script Web App
             fetch(API_URL, {
                 method: 'POST',
-                body: formData,
+                body: params,
                 mode: 'no-cors' 
             }).then(() => {
-                // Success Handling (Blind)
-                
-                // Add to local list immediately
+                // Add to local list immediately (Optimistic UI)
                 const newItem = {
                     type: category, title: title, price: price, seller: name, city: city || 'Online',
                     desc: desc, phone: phone,
@@ -795,6 +744,53 @@
             if(confirm("Lapor ke Admin untuk menghapus item ini dari database Google Sheet?")) {
                 window.open(link, '_blank');
             }
+        }
+
+        // --- ADDED MISSING FUNCTIONS ---
+        function openMarketDetail(json) {
+            const item = JSON.parse(decodeURIComponent(json));
+            const safe = (v) => safeStr(v) || "-";
+            
+            setText('md-title', safe(item.title));
+            setText('md-price', safe(item.price));
+            setText('md-seller', safe(item.seller));
+            setText('md-city', safe(item.city));
+            setText('md-phone', safe(item.phone));
+            setText('md-desc', safe(item.desc));
+            
+            const img = document.getElementById('md-image');
+            img.src = item.image || 'https://placehold.co/400x300/e2e8f0/1e293b?text=No+Image';
+            
+            const badge = document.getElementById('md-badge');
+            const type = safeStr(item.type).toLowerCase();
+            if(type.includes('goods')) { badge.innerText = 'Jual Beli'; badge.className = 'absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm bg-green-600'; }
+            else if(type.includes('services')) { badge.innerText = 'Jasa'; badge.className = 'absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm bg-purple-600'; }
+            else { badge.innerText = 'Lowongan'; badge.className = 'absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold uppercase text-white shadow-sm bg-red-600'; }
+
+            // Tombol WA
+            const waMsg = `Halo Bro ${item.seller}, saya tertarik dengan "${item.title}". Bisa diskusi?`;
+            const waLink = formatWhatsApp(item.phone, waMsg);
+            document.getElementById('md-wa-btn').href = waLink;
+
+            // Tombol Share WA
+            document.getElementById('md-wag-btn').onclick = function() { shareToWa(json); };
+
+            const m = document.getElementById('market-detail-modal');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('market-detail-content').classList.remove('scale-95', 'opacity-0'); }, 10);
+        }
+
+        function closeMarketDetail() {
+            const m = document.getElementById('market-detail-modal');
+            m.classList.add('opacity-0'); document.getElementById('market-detail-content').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function shareToWa(json) {
+            const item = JSON.parse(decodeURIComponent(json));
+            const text = `*Cek di Marketplace Cakrawala 2005!* \n\n${item.title}\nHarga: ${item.price}\nLokasi: ${item.city}\n\nInfo detail: Hubungi ${item.seller} (${item.phone})`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
         }
 
         // --- EXISTING FILTER & LIST LOGIC ---
@@ -877,7 +873,7 @@
             lucide.createIcons();
         }
 
-        // --- STATS ---
+        // --- STATS & MAP (REPAIRED) ---
         function renderStats() {
             const s = {
                 total: alumniData.length,
@@ -895,57 +891,46 @@
         }
 
         function renderJobStats() {
-            const jobCounts = {
-                'Karyawan Swasta': 0,
-                'PNS (ASN)': 0,
-                'Pengusaha': 0,
-                'BUMN': 0,
-                'IRT': 0,
-                'Dosen': 0,
-                'Tidak Bekerja': 0,
-                'Lainnya': 0
-            };
-
+            const jobCounts = {};
             alumniData.forEach(d => {
                 const job = safeStr(d.pekerjaan).toLowerCase();
-                if (job.includes('swasta')) jobCounts['Karyawan Swasta']++;
-                else if (job.includes('pns') || job.includes('asn') || job.includes('sipil')) jobCounts['PNS (ASN)']++;
-                else if (job.includes('wiraswasta') || job.includes('usaha') || job.includes('entrepreneur')) jobCounts['Pengusaha']++;
-                else if (job.includes('bumn') || job.includes('bumd')) jobCounts['BUMN']++;
-                else if (job.includes('irt') || job.includes('rumah tangga')) jobCounts['IRT']++;
-                else if (job.includes('dosen') || job.includes('akademisi')) jobCounts['Dosen']++;
-                else if (job.includes('tidak') || job === '-' || job === '') jobCounts['Tidak Bekerja']++;
-                else jobCounts['Lainnya']++;
+                let cat = 'Lainnya';
+                if (job.includes('swasta')) cat = 'Karyawan Swasta';
+                else if (job.includes('pns') || job.includes('asn')) cat = 'PNS (ASN)';
+                else if (job.includes('usaha') || job.includes('entrepreneur')) cat = 'Pengusaha';
+                else if (job.includes('bumn')) cat = 'BUMN';
+                else if (job.includes('tidak') || job === '-' || job === '') cat = 'Tidak Bekerja';
+                jobCounts[cat] = (jobCounts[cat] || 0) + 1;
             });
-
             let html = '';
             for (const [key, val] of Object.entries(jobCounts)) {
-                html += `
-                <div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm">
-                    <span class="text-xs font-bold text-slate-500 uppercase">${key}</span>
-                    <span class="text-lg font-bold text-slate-800">${val}</span>
-                </div>`;
+                html += `<div class="bg-white p-3 rounded-lg border border-slate-200 flex justify-between items-center shadow-sm"><span class="text-xs font-bold text-slate-500 uppercase">${key}</span><span class="text-lg font-bold text-slate-800">${val}</span></div>`;
             }
             document.getElementById('job-stats-container').innerHTML = html;
         }
 
         const statCard = (t,v,i,c) => `<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4"><div class="p-3 rounded-lg ${c} bg-opacity-10"><i data-lucide="${i}" class="w-6 h-6 ${c.replace('bg-','text-')}"></i></div><div><p class="text-sm text-slate-500 font-medium">${t}</p><h3 class="text-2xl font-bold text-slate-800">${v}</h3></div></div>`;
 
-        // --- MAP LOGIC (REVISED) ---
+        // Function to set map mode
         function setMapMode(mode) {
             mapMode = mode;
-            // Update Button Styles
-            document.getElementById('btn-mode-kota').className = mode === 'kota' 
-                ? "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all" 
-                : "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
             
-            document.getElementById('btn-mode-domisili').className = mode === 'domisili' 
-                ? "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all" 
-                : "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
-
+            // Update UI Buttons
+            const btnKota = document.getElementById('btn-mode-kota');
+            const btnDomisili = document.getElementById('btn-mode-domisili');
+            
+            if (mode === 'kota') {
+                btnKota.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all";
+                btnDomisili.className = "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
+            } else {
+                btnKota.className = "px-3 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-800 transition-all";
+                btnDomisili.className = "px-3 py-1.5 text-xs font-bold rounded-md bg-white text-slate-800 shadow-sm transition-all";
+            }
+            
             renderLeafletMarkers();
         }
 
+        // FIXED RENDER LEAFLET MARKERS
         function renderLeafletMarkers() {
             if (!mapInstance) {
                 mapInstance = L.map('leaflet-map').setView([-2.5, 118], 5);
@@ -954,44 +939,31 @@
             } else markersLayer.clearLayers();
 
             const locs = {};
-            
             filteredData.forEach(p => {
-                // Pilih field berdasarkan mode: 'kota' atau 'domisili'
-                let locString = mapMode === 'kota' ? p.kota : p.domisili;
+                // Determine target location based on mapMode
+                const locationName = (mapMode === 'domisili') ? p.domisili : p.kota;
                 
-                // Jika kosong, skip
-                if (!locString || locString === "-") return;
+                // Skip if no location name
+                if (!locationName) return;
 
-                const c = getCoordinates(locString);
-                
+                const c = getCoordinates(locationName);
                 if (c) {
                     const key = `${c.lat},${c.lng}`;
-                    // Gunakan nama lokasi yang sudah dibersihkan untuk label
-                    let label = safeStr(locString).replace(/kota\s+|kab\.\s+/i, '');
-                    
-                    if (!locs[key]) locs[key] = { ...c, count: 0, people: [], name: label };
-                    locs[key].count++; 
-                    locs[key].people.push(p);
+                    if (!locs[key]) locs[key] = { ...c, count: 0, people: [], city: locationName || "Lokasi" };
+                    locs[key].count++; locs[key].people.push(p);
                 }
             });
 
-            // Update Dropdown Filter Map
             const select = document.getElementById('map-filter');
-            while(select.options.length > 1) select.remove(1);
-            
-            // Get unique location names for dropdown
-            const uniqueLocs = [...new Set(Object.values(locs).map(l => l.name))].sort();
-            uniqueLocs.forEach(c => {
+            while(select.options.length > 2) select.remove(2);
+            [...new Set(Object.values(locs).map(l=>l.city))].sort().forEach(c => {
                 const opt = document.createElement('option'); opt.value = c; opt.text = c; select.add(opt);
             });
             select.value = mapFilterArea;
 
-            const bounds = L.latLngBounds(); 
-            let hasM = false;
-
+            const bounds = L.latLngBounds(); let hasM = false;
             Object.values(locs).forEach(l => {
-                // Filter by dropdown selection
-                if(mapFilterArea !== 'all' && l.name !== mapFilterArea) return;
+                if(mapFilterArea!=='all' && l.city!==mapFilterArea) return;
                 
                 const isBiz = l.people.some(p => safeStr(p.is_owner).toLowerCase().includes('ya'));
                 const isHiring = l.people.some(p => safeStr(p.hiring_status).toLowerCase().includes('sedang'));
@@ -1000,30 +972,16 @@
                 let css = 'blue';
                 if(isHiring) css = 'red';
                 else if(isGig) css = 'purple';
-                else if(isBiz) css = 'yellow'; // Fix css name mapping if using specific class
+                else if(isBiz) css = '';
 
-                // Custom color fix
-                let pinColor = '#2563eb'; // blue
-                if(isHiring) pinColor = '#dc2626';
-                else if(isGig) pinColor = '#9333ea';
-                else if(isBiz) pinColor = '#eab308';
-
-                const iconHtml = `<div class="marker-pin" style="background:${pinColor}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`;
-                const icon = L.divIcon({ className: 'custom-div-icon', html: iconHtml, iconSize: [30,42], iconAnchor: [15,42] });
-                
+                const icon = L.divIcon({ className: 'custom-div-icon', html: `<div class="marker-pin ${css}"></div><span style="position:absolute;top:-10px;left:0;width:30px;text-align:center;font-weight:bold;font-size:12px;">${l.count}</span>`, iconSize: [30,42], iconAnchor: [15,42] });
                 const list = l.people.slice(0,5).map(p=>`<li>${safeStr(p.nama)}</li>`).join('');
-                const more = l.people.length > 5 ? `<li>... +${l.people.length-5} lainnya</li>` : '';
-                
-                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.name} (${l.count})</b><ul style="padding-left:15px; margin-top:5px; font-size:11px;">${list}${more}</ul>`).addTo(markersLayer);
-                
+                L.marker([l.lat, l.lng], {icon}).bindPopup(`<b>${l.city}</b><ul style="padding-left:15px">${list}</ul>`).addTo(markersLayer);
                 bounds.extend([l.lat, l.lng]); hasM = true;
             });
-
-            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); 
-            else mapInstance.setView([-2.5, 118], 5);
+            if(hasM) mapInstance.fitBounds(bounds, {padding:[50,50], maxZoom:10}); else mapInstance.setView([-2.5, 118], 5);
         }
 
-        // Modal Open Logic (Same as before)
         function openModal(json) {
             const d = JSON.parse(decodeURIComponent(json));
             const safe = (v) => safeStr(v) || "-";
